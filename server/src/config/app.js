@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const routes = require('../routes');
+const errorHandler = require('../middleware/errorHandler');
 
 const app = express();
 
@@ -10,9 +11,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', routes);
 
-app.use((err, req, res) => {
-    const status = err.status || 500;
-    res.status(status).json({ error: err.message || 'Internal Server Error' });
-});
+app.use(errorHandler);
 
 module.exports = app;
