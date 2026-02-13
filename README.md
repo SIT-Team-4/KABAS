@@ -73,7 +73,6 @@ server/
 │   │   └── db.js                     # Database connection configuration (Sequelize + MySQL)
 │   ├── controllers/                  # Route handlers - parse requests and send responses
 │   ├── db/
-│   │   ├── migrations/               # Versioned database schema changes
 │   │   └── seeds/                    # Initial or test data for populating tables
 │   ├── middleware/                    # Reusable middleware functions (auth, validation, etc.)
 │   │   └── errorHandler.js           # Global error handling middleware
