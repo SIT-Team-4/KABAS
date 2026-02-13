@@ -4,6 +4,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "dev": "docker-compose -f ../docker-compose.yml up -d && nodemon index.js",
+    "db:up": "docker-compose -f ../docker-compose.yml up -d",
+    "db:down": "docker-compose -f ../docker-compose.yml down",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,7 +21,12 @@
   "homepage": "https://github.com/SIT-Team-4/KABAS#readme",
   "description": "",
   "dependencies": {
-    "express": "^5.2.1"
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "mysql2": "^3.17.1",
+    "sequelize": "^6.37.7",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

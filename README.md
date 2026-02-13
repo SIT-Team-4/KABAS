@@ -1,6 +1,66 @@
 # KABAS
 Kanban Board Assessment System (KABAS)
 
+## Prerequisites
+
+### Node.js (v20+)
+Download and install from [nodejs.org](https://nodejs.org/).
+
+Verify installation:
+```bash
+node --version
+npm --version
+```
+
+### Docker
+Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/) for your OS.
+
+Verify installation:
+```bash
+docker --version
+docker-compose --version
+```
+
+## Getting Started
+
+1. Clone the repository and install dependencies:
+   ```bash
+   git clone https://github.com/SIT-Team-4/KABAS.git
+   cd KABAS/server
+   npm install
+   ```
+
+2. Copy the environment template (from the repo root) and fill in your values:
+   ```bash
+   cd ..
+   cp .env.example .env
+   cd server
+   ```
+
+3. Start the MySQL container and Express server:
+   ```bash
+   npm run dev
+   ```
+
+The API will be available at `http://localhost:3001/api/`.
+
+## NPM Scripts
+
+Run these from the `server/` directory:
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start MySQL container + Express with hot-reload |
+| `npm start` | Start Express only (production) |
+| `npm run db:up` | Start MySQL container |
+| `npm run db:down` | Stop MySQL container |
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/` | Welcome message |
+
 ## Project Structure
 
 ```
@@ -10,14 +70,14 @@ server/
 ├── src/
 │   ├── config/
 │   │   ├── app.js                    # Express app setup, middleware registration, route mounting
-│   │   └── db.js                     # Database connection configuration
+│   │   └── db.js                     # Database connection configuration (Sequelize + MySQL)
 │   ├── controllers/                  # Route handlers - parse requests and send responses
 │   ├── db/
 │   │   ├── migrations/               # Versioned database schema changes
 │   │   └── seeds/                    # Initial or test data for populating tables
 │   ├── middleware/                    # Reusable middleware functions (auth, validation, etc.)
 │   │   └── errorHandler.js           # Global error handling middleware
-│   ├── models/                       # Data shape and schema definitions
+│   ├── models/                       # Sequelize model definitions
 │   ├── repositories/                 # Database query layer - only layer that talks to the DB
 │   ├── routes/                       # URL-to-controller mappings
 │   │   └── index.js                  # Combines and exports all route definitions
@@ -41,11 +101,3 @@ Route → Controller → Service → Repository → Database
 | **Models**     | Define the shape and validation rules for data                                |
 | **Middleware** | Functions that run before route handlers (authentication, logging, error handling) |
 | **Config**     | Centralised app and database configuration                                    |
-
-### Key Files
-
-- **`server/index.js`** - Application entry point. Loads the Express app from `src/config/app.js` and starts listening on the configured port.
-- **`src/config/app.js`** - Creates the Express app instance, registers global middleware (JSON parsing, URL encoding), and mounts all routes.
-- **`src/config/db.js`** - Database connection setup. Configure your database credentials and connection pool here.
-- **`src/routes/index.js`** - Central route file. As the app grows, import and mount sub-routers here (e.g. `/api/users`, `/api/boards`).
-- **`src/middleware/errorHandler.js`** - Catches unhandled errors and returns a consistent JSON error response.
