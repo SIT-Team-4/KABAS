@@ -81,9 +81,8 @@ server/
 │   ├── repositories/                 # Database query layer - only layer that talks to the DB
 │   ├── routes/                       # URL-to-controller mappings
 │   │   └── index.js                  # Combines and exports all route definitions
-│   ├── services/                     # Business logic layer
+│   ├── services/                     # Business logic layer (tests colocated as *.test.js)
 │   └── utils/                        # Shared helper functions
-└── tests/                            # Unit and integration tests
 ```
 
 ### Request Flow
