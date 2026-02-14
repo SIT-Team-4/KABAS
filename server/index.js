@@ -8,12 +8,14 @@ const port = process.env.PORT || 3001;
 const connectWithRetry = async (retries = 5, delay = 3000) => {
     for (let i = 0; i < retries; i++) {
         try {
+            // eslint-disable-next-line no-await-in-loop
             await sequelize.authenticate();
             return;
         } catch (err) {
             if (i < retries - 1) {
                 console.log(`Database not ready, retrying in ${delay / 1000}s... (${i + 1}/${retries})`);
-                await new Promise((res) => setTimeout(res, delay));
+                // eslint-disable-next-line no-await-in-loop, no-promise-executor-return
+                await new Promise((res) => { setTimeout(res, delay); });
             } else {
                 throw err;
             }
