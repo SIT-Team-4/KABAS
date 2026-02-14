@@ -9,8 +9,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Routes
 app.use('/api', routes);
 
+// Error handling middleware
 app.use(errorHandler);
 
 module.exports = app;
