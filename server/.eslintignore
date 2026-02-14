@@ -1,3 +1,5 @@
 node_modules/
 coverage/
 dist/
+*.test.js
+vitest.config.js
