@@ -17,8 +17,5 @@
         "prefer-destructuring": "warn",
         "no-plusplus": "off",
         "import/extensions": ["error", "ignorePackages"]
-    },
-    "settings": {
-        "import/core-modules": ["octokit"]
     }
 }
