@@ -77,7 +77,7 @@ Runs automatically on **push to main** (i.e. when a PR is merged):
 
 ### Deployment Architecture
 
-```
+```text
 GitHub (push to main) → GitHub Actions (CI + deploy trigger) → Render (build + run) → Aiven (MySQL)
 ```
 
