@@ -1,5 +1,4 @@
-const sequelize = require('../config/db');
+import sequelize from '../config/db.js';
 
-module.exports = {
-    sequelize,
-};
+// eslint-disable-next-line import/prefer-default-export
+export { sequelize };
