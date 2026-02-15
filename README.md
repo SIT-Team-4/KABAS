@@ -61,6 +61,35 @@ Run these from the `server/` directory:
 |--------|----------|-------------|
 | GET | `/api/` | Welcome message |
 
+## CI/CD
+
+### CI (Continuous Integration)
+
+Runs automatically on **pull requests to main**:
+1. Lint (`npm run lint`)
+2. Test (`npm test`)
+
+### CD (Continuous Deployment)
+
+Runs automatically on **push to main** (i.e. when a PR is merged):
+1. CI job runs (lint + test)
+2. If CI passes, triggers a deploy to [Render](https://render.com)
+
+### Deployment Architecture
+
+```
+GitHub (push to main) → GitHub Actions (CI + deploy trigger) → Render (build + run) → Aiven (MySQL)
+```
+
+- **Compute:** Render Web Service (Node.js)
+- **Database:** Aiven MySQL (free tier)
+- **Deploy trigger:** Render deploy hook (stored as GitHub repo secret `RENDER_DEPLOY_HOOK_URL`)
+
+### Rollback
+
+- **Render dashboard:** Navigate to the service → Deploys → click a previous successful deploy → Rollback
+- **Git:** Revert the commit on `main` → triggers a new deploy with the previous code
+
 ## Project Structure
 
 ```
