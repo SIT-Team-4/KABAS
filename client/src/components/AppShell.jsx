@@ -18,41 +18,50 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 
 import { NavLink } from "react-router-dom";
 
-const navBaseSx = {
-  fontWeight: 700,
-  borderRadius: 2,
-  px: 1.5,
-  py: 0.9,
-  textTransform: "none"
+const ORANGE = "#F79009";
+
+const navBtnBase = {
+  fontWeight: 850,
+  borderRadius: 999,
+  px: 1.6,
+  py: 0.85,
+  textTransform: "none",
+  lineHeight: 1
 };
 
-const navInactiveSx = {
+const navInactive = {
   color: "text.secondary",
-  "&:hover": {
-    backgroundColor: "rgba(15,23,42,0.04)",
-    color: "text.primary"
-  }
+  "&:hover": { backgroundColor: "rgba(15,23,42,0.04)", color: "text.primary" }
 };
 
-const navActiveSx = {
+const navActive = {
   color: "text.primary",
-  border: "1px solid rgba(247,144,9,0.9)", // orange outline
-  backgroundColor: "rgba(247,144,9,0.10)"  // light orange fill
+  backgroundColor: "rgba(247,144,9,0.12)",
+  border: "1px solid rgba(247,144,9,0.55)"
 };
 
 export default function AppShell({ children }) {
   return (
-    <Box>
-      <AppBar position="sticky">
-        <Toolbar sx={{ gap: 2, height: 72 }}>
-          {/* Logo + Title */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 260 }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      <AppBar
+        position="sticky"
+        elevation={0}
+        sx={{
+          bgcolor: "#FFFFFF",
+          color: "text.primary",
+          borderBottom: "1px solid rgba(15,23,42,0.08)",
+          backgroundImage: "none",
+        }}
+      >
+        <Toolbar sx={{ height: 72, gap: 2 }}>
+          {/* Brand */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 280 }}>
             <Box
               sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 2,
-                bgcolor: "#F79009",
+                width: 42,
+                height: 42,
+                borderRadius: 2.5,
+                bgcolor: ORANGE,
                 display: "grid",
                 placeItems: "center",
                 color: "white"
@@ -61,30 +70,23 @@ export default function AppShell({ children }) {
               <BarChartRoundedIcon />
             </Box>
 
-            <Box>
-              <Typography sx={{ fontWeight: 800, letterSpacing: "0.04em" }}>
-                KABAS
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.1 }}>
+            <Box sx={{ lineHeight: 1.1 }}>
+              <Typography sx={{ fontWeight: 950, letterSpacing: "-0.02em" }}>KABAS</Typography>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 Kanban Board Assessment System
               </Typography>
             </Box>
           </Box>
 
-          {/* Team Selector (static for now) */}
+          {/* Team selector (center) */}
           <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
             <Select
               size="small"
               value="Team Alpha"
               sx={{
-                minWidth: 260,
-                bgcolor: "#FFFFFF",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "rgba(15,23,42,0.10)"
-                },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "rgba(15,23,42,0.18)"
-                }
+                minWidth: 320,
+                "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(15,23,42,0.12)" },
+                "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(15,23,42,0.22)" }
               }}
             >
               <MenuItem value="Team Alpha">Team Alpha</MenuItem>
@@ -92,15 +94,15 @@ export default function AppShell({ children }) {
             </Select>
           </Box>
 
-          {/* Nav Buttons */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          {/* Nav */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
             <Button
               component={NavLink}
               to="/all-teams"
               startIcon={<GroupOutlinedIcon />}
               sx={({ isActive }) => ({
-                ...navBaseSx,
-                ...(isActive ? navActiveSx : navInactiveSx)
+                ...navBtnBase,
+                ...(isActive ? navActive : navInactive)
               })}
             >
               All Teams
@@ -111,8 +113,8 @@ export default function AppShell({ children }) {
               to="/team-credentials"
               startIcon={<KeyOutlinedIcon />}
               sx={({ isActive }) => ({
-                ...navBaseSx,
-                ...(isActive ? navActiveSx : navInactiveSx)
+                ...navBtnBase,
+                ...(isActive ? navActive : navInactive)
               })}
             >
               Team Credentials
@@ -121,21 +123,22 @@ export default function AppShell({ children }) {
 
           <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
 
-          {/* User Profile */}
+          {/* Profile */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 1.25,
-              bgcolor: "rgba(247,144,9,0.10)",
-              borderRadius: 2,
-              px: 1.5,
-              py: 1
+              gap: 1.1,
+              borderRadius: 2.5,
+              px: 1.4,
+              py: 0.9,
+              border: "1px solid rgba(15,23,42,0.08)",
+              bgcolor: "rgba(255,255,255,0.7)"
             }}
           >
-            <Avatar sx={{ width: 34, height: 34, bgcolor: "#F79009" }}>I</Avatar>
-            <Box sx={{ lineHeight: 1.15 }}>
-              <Typography sx={{ fontWeight: 700, fontSize: 13 }}>Instructor</Typography>
+            <Avatar sx={{ width: 34, height: 34, bgcolor: ORANGE }}>I</Avatar>
+            <Box sx={{ lineHeight: 1.1 }}>
+              <Typography sx={{ fontWeight: 900, fontSize: 13 }}>Instructor</Typography>
               <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
                 instructor@google.com
               </Typography>
@@ -145,8 +148,8 @@ export default function AppShell({ children }) {
         </Toolbar>
       </AppBar>
 
-      {/* Page Content */}
-      <Box sx={{ maxWidth: 1400, mx: "auto", px: { xs: 2, md: 3 }, py: 4 }}>
+      {/* Page container */}
+      <Box sx={{ maxWidth: 1200, mx: "auto", px: { xs: 2, md: 3 }, py: 4 }}>
         {children}
       </Box>
     </Box>
