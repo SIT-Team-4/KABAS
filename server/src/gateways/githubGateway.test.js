@@ -1,5 +1,5 @@
 import {
-    describe, it, expect, vi, beforeEach,
+    describe, it, expect, vi,
 } from 'vitest';
 import { fetchIssues, fetchIssueTimeline, fetchProjectBoardStatuses } from './githubGateway.js';
 

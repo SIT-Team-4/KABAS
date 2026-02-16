@@ -1,5 +1,5 @@
 import {
-    describe, it, expect, vi,
+    describe, it, expect, vi, beforeEach,
 } from 'vitest';
 import { getKanbanData } from './githubController.js';
 
@@ -20,6 +20,10 @@ function buildRes() {
 }
 
 describe('githubController.getKanbanData', () => {
+    beforeEach(() => {
+        mockGetKanbanData.mockReset();
+    });
+
     it.each([
         {
             name: 'returns 401 when X-GitHub-Token header is missing',

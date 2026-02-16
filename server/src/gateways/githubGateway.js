@@ -1,3 +1,4 @@
+// Queries the first ProjectV2 board only — we assume one Kanban board per repo.
 const PROJECT_BOARD_QUERY = `
 query($owner: String!, $repo: String!, $cursor: String) {
   repository(owner: $owner, name: $repo) {
@@ -42,12 +43,16 @@ export async function fetchIssueTimeline(octokit, owner, repo, issueNumber) {
     return events;
 }
 
+const MAX_PAGES = 50;
+
 export async function fetchProjectBoardStatuses(octokit, owner, repo) {
     const allItems = [];
     let cursor = null;
     let hasNextPage = true;
+    let page = 0;
 
-    while (hasNextPage) {
+    while (hasNextPage && page < MAX_PAGES) {
+        page++;
         // eslint-disable-next-line no-await-in-loop
         const response = await octokit.graphql(PROJECT_BOARD_QUERY, {
             owner,

@@ -1,5 +1,5 @@
 import {
-    describe, it, expect, vi,
+    describe, it, expect, vi, beforeEach,
 } from 'vitest';
 import express from 'express';
 import request from 'supertest';
@@ -20,6 +20,10 @@ app.use((err, req, res, _next) => {
 });
 
 describe('GET /:owner/:repo/kanban', () => {
+    beforeEach(() => {
+        mockGetKanbanData.mockReset();
+    });
+
     it.each([
         {
             name: 'returns kanban data with valid token',
