@@ -32,6 +32,7 @@ export default function StatusCard({
       sx={{
         cursor: "pointer",
         borderRadius: 3,
+        // THIS makes it a wide rectangle like your 2nd image
         minHeight: isWide ? 132 : 110,
         transition: "transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease",
         "&:hover": {
