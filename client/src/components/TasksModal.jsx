@@ -64,9 +64,11 @@ export default function TasksModal({
           boxShadow: "0 24px 60px rgba(0,0,0,0.20)",
         },
       }}
-      BackdropProps={{
+    slotProps={{
+      backdrop: {
         sx: { backgroundColor: "rgba(15,23,42,0.55)" },
-      }}
+      },
+    }}
     >
       {/* Header */}
       <Box

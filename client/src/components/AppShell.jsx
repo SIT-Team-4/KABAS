@@ -50,9 +50,9 @@ export default function AppShell({ children }) {
           borderBottom: "1px solid rgba(15,23,42,0.08)",
         }}
       >
-        <Toolbar sx={{ height: 72, minWidth: 1575, mx: "auto", px: { xs: 2, md: 3 } }}>
+        <Toolbar sx={{ height: 72, maxWidth: 1600, mx: "auto", px: { xs: 2, md: 3 } }}>
           {/* LEFT: Logo */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 690 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 725 }}>
             <Box
               sx={{
                 p: 1,

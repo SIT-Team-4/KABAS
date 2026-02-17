@@ -1,10 +1,10 @@
-export const team = { name: "Team Alpha", members: 4, totalTasks: 45 };
+export const team = { name: "Team Alpha", members: 4, totalTasks: 11 };
 
 export const statusCards = [
-  { key: "todo", label: "To-Do", count: 13, color: "#7F56D9", tint: "rgba(127,86,217,0.12)" },
-  { key: "in_progress", label: "In Progress", count: 9, color: "#2E90FA", tint: "rgba(46,144,250,0.12)" },
-  { key: "completed", label: "Completed", count: 13, color: "#12B76A", tint: "rgba(18,183,106,0.12)" },
-  { key: "backlog", label: "Backlog", count: 10, color: "#F79009", tint: "rgba(247,144,9,0.14)" }
+  { key: "todo", label: "To-Do", count: 5, color: "#7F56D9", tint: "rgba(127,86,217,0.12)" },
+  { key: "in_progress", label: "In Progress", count: 3, color: "#2E90FA", tint: "rgba(46,144,250,0.12)" },
+  { key: "completed", label: "Completed", count: 2, color: "#12B76A", tint: "rgba(18,183,106,0.12)" },
+  { key: "backlog", label: "Backlog", count: 1, color: "#F79009", tint: "rgba(247,144,9,0.14)" }
 ];
 
 export const tasks = [
