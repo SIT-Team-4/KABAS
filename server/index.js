@@ -1,9 +1,6 @@
-import dotenv from 'dotenv';
-
-dotenv.config({ path: '../.env' });
-
-import app from './src/config/app.js'; // eslint-disable-line import/first
-import { sequelize } from './src/models/index.js'; // eslint-disable-line import/first
+import './src/config/env.js';
+import app from './src/config/app.js';
+import { sequelize } from './src/models/index.js';
 
 const port = process.env.PORT || 3001;
 
