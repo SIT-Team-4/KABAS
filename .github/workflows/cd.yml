@@ -17,5 +17,8 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Render Deploy
+      - name: Trigger Server Deploy
         run: curl -sf "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Trigger Client Deploy
+        run: curl -sf "${{ secrets.RENDER_CLIENT_DEPLOY_HOOK_URL }}"
