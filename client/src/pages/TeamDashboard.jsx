@@ -17,8 +17,6 @@ import {
 
 import SyncRoundedIcon from "@mui/icons-material/SyncRounded";
 import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import ListAltRoundedIcon from "@mui/icons-material/ListAltRounded";
 
 import StatusCard from "../components/StatusCard";
 import TasksModal from "../components/TasksModal";

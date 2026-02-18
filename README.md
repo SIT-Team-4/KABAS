@@ -65,15 +65,22 @@ Run these from the `server/` directory:
 
 ### CI (Continuous Integration)
 
-Runs automatically on **pull requests to main**:
+Runs automatically on **pull requests to main** as two parallel jobs:
+
+**CI Server** (`./server`):
 1. Lint (`npm run lint`)
 2. Test (`npm test`)
+
+**CI Client** (`./client`):
+1. Lint (`npm run lint`)
+2. Test (`CI=true npm test`)
+3. Build (`npm run build`)
 
 ### CD (Continuous Deployment)
 
 Runs automatically on **push to main** (i.e. when a PR is merged):
-1. CI job runs (lint + test)
-2. If CI passes, triggers a deploy to [Render](https://render.com)
+1. Both CI jobs run in parallel
+2. If both pass, triggers deploys to [Render](https://render.com)
 
 ### Deployment Architecture
 
@@ -81,9 +88,10 @@ Runs automatically on **push to main** (i.e. when a PR is merged):
 GitHub (push to main) → GitHub Actions (CI + deploy trigger) → Render (build + run) → Aiven (MySQL)
 ```
 
-- **Compute:** Render Web Service (Node.js)
+- **Compute:** Render Web Service (Node.js backend)
+- **Static Site:** Render Static Site (React client)
 - **Database:** Aiven MySQL (free tier)
-- **Deploy trigger:** Render deploy hook (stored as GitHub repo secret `RENDER_DEPLOY_HOOK_URL`)
+- **Deploy trigger:** Render deploy hooks (stored as GitHub repo secrets `RENDER_DEPLOY_HOOK_URL` and `RENDER_CLIENT_DEPLOY_HOOK_URL`)
 
 ### Rollback
 
