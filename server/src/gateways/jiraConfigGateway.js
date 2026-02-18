@@ -74,6 +74,7 @@ export const getJiraClient = () => {
 
     return axios.create({
         baseURL: jiraConfig.baseUrl,
+        timeout: 10000, // 10 s timeout for Jira API calls
         auth: {
             username: jiraConfig.email,
             password: jiraConfig.apiToken,
@@ -110,4 +111,18 @@ export const clearConfig = () => {
         email: null,
         apiToken: null,
     };
+};
+
+/**
+ * Get the test API key
+ * @returns {string} The test API key
+ */
+export const getTestApiKey = () => {
+    const key = process.env.TEST_API_KEY;
+    if (!key) {
+        throw new Error(
+            'TEST_API_KEY not set. For local dev create .env.test or set TEST_API_KEY in your environment. In CI set repository secret TEST_API_KEY.'
+        );
+    }
+    return key;
 };

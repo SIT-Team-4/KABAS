@@ -101,13 +101,15 @@ describe('Jira Config Gateway', () => {
       jiraConfigGateway.setConfig(testConfig);
 
       jiraConfigGateway.getJiraClient();
-      expect(axios.create).toHaveBeenCalledWith({
-        baseURL: testConfig.baseUrl,
-        auth: {
-          username: testConfig.email,
-          password: testConfig.apiToken,
-        },
-      });
+      expect(axios.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          baseURL: testConfig.baseUrl,
+          auth: {
+            username: testConfig.email,
+            password: testConfig.apiToken,
+          },
+        })
+      );
     });
 
     it('should throw error if configuration not set', () => {
