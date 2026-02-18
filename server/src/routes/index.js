@@ -12,7 +12,7 @@ router.use('/github', githubRoutes);
 router.use('/api/jira', jiraRouter);
 
 export const configureRoutes = (app) => {
-  app.use('/api', router);
+    app.use('/api', router);
 };
 
 export default router;

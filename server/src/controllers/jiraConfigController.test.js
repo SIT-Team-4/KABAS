@@ -61,8 +61,8 @@ describe('Jira Config Controller', () => {
         throw new Error('Invalid configuration');
       });
 
-      const req = { body: { baseUrl: 'invalid' } };
-      const res = { json: vi.fn() };
+      const req = { body: { baseUrl: 'https://example.atlassian.net', email: 'a@b.com', apiToken: 'tok' } };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
       const next = vi.fn();
 
       await jiraConfigController.setConfig(req, res, next);
