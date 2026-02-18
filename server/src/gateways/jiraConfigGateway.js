@@ -121,7 +121,7 @@ export const getTestApiKey = () => {
     const key = process.env.TEST_API_KEY;
     if (!key) {
         throw new Error(
-            'TEST_API_KEY not set. For local dev create .env.test or set TEST_API_KEY in your environment. In CI set repository secret TEST_API_KEY.'
+            'TEST_API_KEY not set. For local dev create .env.test or set TEST_API_KEY in your environment. In CI set repository secret TEST_API_KEY.',
         );
     }
     return key;
