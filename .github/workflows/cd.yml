@@ -17,5 +17,9 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Render Deploy
-        run: curl -sf "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+      - name: Trigger Server Deploy
+        continue-on-error: true
+        run: curl -sfS --max-time 30 "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Trigger Client Deploy
+        run: curl -sfS --max-time 30 "${{ secrets.RENDER_CLIENT_DEPLOY_HOOK_URL }}"
