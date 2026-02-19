@@ -6,9 +6,9 @@ vi.mock('../gateways/jiraConfigGateway.js');
 
 describe('Jira Config Controller', () => {
   const testConfig = {
-    baseUrl: 'https://sit-team-hatq35cd.atlassian.net/jira/software/c/projects/KBAS/boards',
-    email: '2300417@sit.singaporetech.edu.sg',
-    apiToken: 'ATATT3xFfGF0PfqmvE3o0eeN0IjP-LxC22mKxhg9m5Yk1wjnSJYDa-S_NnYkAN-7qOH-kH9F6vNRn2rMOTnN_-uA1blQj9KvRh8LNghH-0kqg0waKEV5BH5Wfm667uifDMMGcjzT6wRdafYtZpUR4WMCZ_a4qXvvTNeT9v6CvVC2_06zTSHhnMA=6917A448',
+    baseUrl: 'https://example.atlassian.net',
+    email: 'test-email@university.edu',
+    apiToken: 'fake-token',
   };
 
   beforeEach(() => {
@@ -21,7 +21,7 @@ describe('Jira Config Controller', () => {
       vi.mocked(jiraConfigGateway.getConfig).mockReturnValue(mockConfig);
 
       const req = {};
-      const res = { json: vi.fn() };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
       await jiraConfigController.getConfig(req, res, vi.fn());
 
@@ -35,7 +35,7 @@ describe('Jira Config Controller', () => {
   describe('setConfig', () => {
     it('should set configuration with provided test credentials', async () => {
       const req = { body: testConfig };
-      const res = { json: vi.fn() };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
       await jiraConfigController.setConfig(req, res, vi.fn());
 
@@ -46,14 +46,14 @@ describe('Jira Config Controller', () => {
       });
     });
 
-    it('should set configuration with email 2300417@sit.singaporetech.edu.sg', async () => {
+    it('should set configuration with email test-email@university.edu', async () => {
       const req = { body: testConfig };
-      const res = { json: vi.fn() };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
       await jiraConfigController.setConfig(req, res, vi.fn());
 
       const callArg = vi.mocked(jiraConfigGateway.setConfig).mock.calls[0][0];
-      expect(callArg.email).toBe('2300417@sit.singaporetech.edu.sg');
+      expect(callArg.email).toBe('test-email@university.edu');
     });
 
     it('should call next with error on validation failure', async () => {
@@ -76,7 +76,7 @@ describe('Jira Config Controller', () => {
       vi.mocked(jiraConfigGateway.validateConfig).mockResolvedValue(true);
 
       const req = {};
-      const res = { json: vi.fn() };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
       await jiraConfigController.validateConfig(req, res, vi.fn());
 
@@ -92,7 +92,7 @@ describe('Jira Config Controller', () => {
       );
 
       const req = {};
-      const res = { json: vi.fn() };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
       const next = vi.fn();
 
       await jiraConfigController.validateConfig(req, res, next);
@@ -104,7 +104,7 @@ describe('Jira Config Controller', () => {
   describe('clearConfig', () => {
     it('should clear configuration', async () => {
       const req = {};
-      const res = { json: vi.fn() };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
       await jiraConfigController.clearConfig(req, res, vi.fn());
 

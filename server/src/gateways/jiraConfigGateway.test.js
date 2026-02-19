@@ -6,9 +6,9 @@ vi.mock('axios');
 
 describe('Jira Config Gateway', () => {
   const testConfig = {
-    baseUrl: 'https://sit-team-hatq35cd.atlassian.net/jira/software/c/projects/KBAS/boards',
-    email: '2300417@sit.singaporetech.edu.sg',
-    apiToken: 'ATATT3xFfGF0PfqmvE3o0eeN0IjP-LxC22mKxhg9m5Yk1wjnSJYDa-S_NnYkAN-7qOH-kH9F6vNRn2rMOTnN_-uA1blQj9KvRh8LNghH-0kqg0waKEV5BH5Wfm667uifDMMGcjzT6wRdafYtZpUR4WMCZ_a4qXvvTNeT9v6CvVC2_06zTSHhnMA=6917A448',
+    baseUrl: 'https://example.atlassian.net',
+    email: 'test-email@university.edu',
+    apiToken: 'fake-token',
   };
 
   beforeEach(() => {

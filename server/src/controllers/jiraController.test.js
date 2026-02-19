@@ -11,7 +11,7 @@ describe('Jira Controller', () => {
       vi.mocked(jiraService.fetchProjectIssues).mockResolvedValue(mockIssues);
 
       const req = { params: { projectKey: 'PROJ' } };
-      const res = { json: vi.fn() };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
       await jiraController.getProjectIssues(req, res, vi.fn());
 
@@ -26,7 +26,7 @@ describe('Jira Controller', () => {
       vi.mocked(jiraService.fetchProjectIssues).mockRejectedValue(error);
 
       const req = { params: { projectKey: 'PROJ' } };
-      const res = { json: vi.fn() };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
       const next = vi.fn();
 
       await jiraController.getProjectIssues(req, res, next);
@@ -41,7 +41,7 @@ describe('Jira Controller', () => {
       vi.mocked(jiraService.fetchIssueDetails).mockResolvedValue(mockIssue);
 
       const req = { params: { issueKey: 'PROJ-1' } };
-      const res = { json: vi.fn() };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
       await jiraController.getIssueDetails(req, res, vi.fn());
 
@@ -49,6 +49,19 @@ describe('Jira Controller', () => {
         success: true,
         data: mockIssue,
       });
+    });
+
+    it('should call next with error when service fails', async () => {
+      const error = new Error('Service failure');
+      vi.mocked(jiraService.fetchIssueDetails).mockRejectedValue(error);
+
+      const req = { params: { issueKey: 'PROJ-1' } };
+      const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
+      const next = vi.fn();
+
+      await jiraController.getIssueDetails(req, res, next);
+
+      expect(next).toHaveBeenCalledWith(error);
     });
   });
 });

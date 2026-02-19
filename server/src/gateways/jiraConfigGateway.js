@@ -5,6 +5,7 @@ let jiraConfig = {
     email: process.env.JIRA_EMAIL || null,
     apiToken: process.env.JIRA_API_TOKEN || null,
 };
+let cachedClient = null;
 
 /**
  * Get the current Jira configuration
@@ -60,6 +61,8 @@ export const setConfig = (config) => {
         email,
         apiToken,
     };
+    // Invalidate cached client so new credentials are used
+    cachedClient = null;
 };
 
 /**
@@ -72,7 +75,9 @@ export const getJiraClient = () => {
         throw new Error('Jira configuration not set. Please configure Jira credentials first.');
     }
 
-    return axios.create({
+    if (cachedClient) return cachedClient;
+
+    cachedClient = axios.create({
         baseURL: jiraConfig.baseUrl,
         timeout: 10000, // 10 s timeout for Jira API calls
         auth: {
@@ -80,6 +85,8 @@ export const getJiraClient = () => {
             password: jiraConfig.apiToken,
         },
     });
+
+    return cachedClient;
 };
 
 /**
@@ -88,10 +95,6 @@ export const getJiraClient = () => {
  * @throws {Error} If validation fails
  */
 export const validateConfig = async () => {
-    if (!jiraConfig.baseUrl || !jiraConfig.email || !jiraConfig.apiToken) {
-        throw new Error('Jira configuration not set');
-    }
-
     try {
         const client = getJiraClient();
         await client.get('/rest/api/3/myself');
@@ -111,18 +114,5 @@ export const clearConfig = () => {
         email: null,
         apiToken: null,
     };
-};
-
-/**
- * Get the test API key
- * @returns {string} The test API key
- */
-export const getTestApiKey = () => {
-    const key = process.env.TEST_API_KEY;
-    if (!key) {
-        throw new Error(
-            'TEST_API_KEY not set. For local dev create .env.test or set TEST_API_KEY in your environment. In CI set repository secret TEST_API_KEY.',
-        );
-    }
-    return key;
+    cachedClient = null;
 };

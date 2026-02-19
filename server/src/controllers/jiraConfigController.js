@@ -18,14 +18,12 @@ export const getConfig = async (req, res, next) => {
 export const setConfig = async (req, res, next) => {
     try {
         const { baseUrl, email, apiToken } = req?.body || {};
-
         if (!baseUrl || !email || !apiToken) {
             return res.status(400).json({
                 success: false,
                 error: 'Missing required fields: baseUrl, email, apiToken',
             });
         }
-
         jiraConfigGateway.setConfig({ baseUrl, email, apiToken });
         return res.json({ success: true, message: 'Jira configuration updated' });
     } catch (error) {

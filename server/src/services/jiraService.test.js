@@ -10,11 +10,13 @@ describe('Jira Service', () => {
       const mockIssues = [
         {
           key: 'PROJ-1',
-          summary: 'Fix login bug',
-          status: { name: 'In Progress' },
-          assignee: { displayName: 'Alice' },
-          created: '2026-02-18',
-          updated: '2026-02-18',
+          fields: {
+            summary: 'Fix login bug',
+            status: { name: 'In Progress' },
+            assignee: { displayName: 'Alice' },
+            created: '2026-02-18',
+            updated: '2026-02-18',
+          },
         },
       ];
       vi.mocked(jiraGateway.getPullRequests).mockResolvedValue(mockIssues);
@@ -41,12 +43,14 @@ describe('Jira Service', () => {
     it('should transform Jira issue details', async () => {
       const mockIssue = {
         key: 'PROJ-1',
-        summary: 'Fix login bug',
-        description: { plainText: 'Users cannot login' },
-        status: { name: 'In Progress' },
-        assignee: { displayName: 'Alice' },
-        created: '2026-02-18',
-        updated: '2026-02-18',
+        fields: {
+          summary: 'Fix login bug',
+          description: 'Users cannot login',
+          status: { name: 'In Progress' },
+          assignee: { displayName: 'Alice' },
+          created: '2026-02-18',
+          updated: '2026-02-18',
+        },
       };
       vi.mocked(jiraGateway.getIssueDetails).mockResolvedValue(mockIssue);
 

@@ -9,7 +9,7 @@ router.get('/', (req, res) => {
 });
 
 router.use('/github', githubRoutes);
-router.use('/api/jira', jiraRouter);
+router.use('/jira', jiraRouter);
 
 export const configureRoutes = (app) => {
     app.use('/api', router);

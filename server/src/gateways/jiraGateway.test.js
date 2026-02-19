@@ -1,16 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import axios from 'axios';
 import * as jiraGateway from './jiraGateway.js';
 import * as jiraConfigGateway from './jiraConfigGateway.js';
-
-vi.mock('axios');
 vi.mock('./jiraConfigGateway.js');
 
 describe('Jira Gateway', () => {
   const testConfig = {
-    baseUrl: 'https://sit-team-hatq35cd.atlassian.net/jira/software/c/projects/KBAS/boards',
-    email: '2300417@sit.singaporetech.edu.sg',
-    apiToken: 'ATATT3xFfGF0PfqmvE3o0eeN0IjP-LxC22mKxhg9m5Yk1wjnSJYDa-S_NnYkAN-7qOH-kH9F6vNRn2rMOTnN_-uA1blQj9KvRh8LNghH-0kqg0waKEV5BH5Wfm667uifDMMGcjzT6wRdafYtZpUR4WMCZ_a4qXvvTNeT9v6CvVC2_06zTSHhnMA=6917A448',
+    baseUrl: 'https://example.atlassian.net',
+    email: 'test-email@university.edu',
+    apiToken: 'fake-token',
   };
 
   beforeEach(() => {
@@ -37,13 +34,13 @@ describe('Jira Gateway', () => {
       vi.mocked(jiraConfigGateway.getJiraClient).mockReturnValue(mockClient);
 
       const result = await jiraGateway.getPullRequests('PROJ');
-      
+
       expect(result).toEqual(mockIssues);
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/rest/api/3/search',
+        '/rest/api/3/search/jql',
         expect.objectContaining({
           params: expect.objectContaining({
-            jql: 'project = PROJ AND type in (Task, Story, Bug)',
+            jql: 'project = "PROJ" AND type in (Task, Story, Bug)',
           }),
         })
       );
@@ -107,9 +104,9 @@ describe('Jira Gateway', () => {
       vi.mocked(jiraConfigGateway.getJiraClient).mockReturnValue(mockClient);
 
       const result = await jiraGateway.getIssueDetails('PROJ-1');
-      
+
       expect(result).toEqual(mockIssue);
-      expect(mockClient.get).toHaveBeenCalledWith('/rest/api/3/issues/PROJ-1');
+      expect(mockClient.get).toHaveBeenCalledWith('/rest/api/3/issue/PROJ-1');
     });
 
     it('should return empty object when no data returned', async () => {
