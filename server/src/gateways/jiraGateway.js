@@ -1,6 +1,6 @@
 import * as jiraConfigGateway from './jiraConfigGateway.js';
 
-export const getPullRequests = async (projectKey) => {
+export const getIssues = async (projectKey) => {
     if (!projectKey || typeof projectKey !== 'string') {
         throw new Error('Invalid project key');
     }
@@ -22,14 +22,14 @@ export const getPullRequests = async (projectKey) => {
 
         // Token-based pagination loop for enhanced JQL search
         do {
-            const params = { jql, fields };
-            if (nextPageToken) params.nextPageToken = nextPageToken;
+            const body = { jql, fields };
+            if (nextPageToken) body.nextPageToken = nextPageToken;
 
             // The search API uses token-based pagination and requires sequential
             // requests; awaiting inside the loop is intentional here.
             // eslint-disable-next-line no-await-in-loop
-            const response = await jiraClient.get('/rest/api/3/search/jql', { params });
-            const pageIssues = response.data?.results || response.data?.issues || [];
+            const response = await jiraClient.post('/rest/api/3/search/jql', body);
+            const pageIssues = response.data?.issues || [];
             allIssues = allIssues.concat(pageIssues);
             nextPageToken = response.data?.nextPageToken;
         } while (nextPageToken);
@@ -44,6 +44,11 @@ export const getPullRequests = async (projectKey) => {
 export const getIssueDetails = async (issueKey) => {
     if (!issueKey || typeof issueKey !== 'string') {
         throw new Error('Invalid issue key');
+    }
+
+    // Validate issueKey format to prevent path traversal (e.g., PROJ-123)
+    if (!/^[A-Z][A-Z0-9]+-\d+$/i.test(issueKey.trim())) {
+        throw new Error('Invalid issue key format');
     }
 
     try {

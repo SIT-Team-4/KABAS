@@ -67,7 +67,7 @@ describe('Jira Config Controller', () => {
 
       await jiraConfigController.setConfig(req, res, next);
 
-      expect(next).toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
     });
   });
 

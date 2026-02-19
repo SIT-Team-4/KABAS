@@ -54,7 +54,7 @@ describe('Jira Config Gateway', () => {
     it('should throw error if baseUrl does not start with https://', () => {
       expect(() =>
         jiraConfigGateway.setConfig({
-          baseUrl: 'http://sit-team-hatq35cd.atlassian.net/jira/software/c/projects/KBAS/boards',
+          baseUrl: 'http://example.atlassian.net',
           email: testConfig.email,
           apiToken: testConfig.apiToken,
         })

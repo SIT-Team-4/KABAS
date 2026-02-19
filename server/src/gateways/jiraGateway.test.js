@@ -4,17 +4,11 @@ import * as jiraConfigGateway from './jiraConfigGateway.js';
 vi.mock('./jiraConfigGateway.js');
 
 describe('Jira Gateway', () => {
-  const testConfig = {
-    baseUrl: 'https://example.atlassian.net',
-    email: 'test-email@university.edu',
-    apiToken: 'fake-token',
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('getPullRequests', () => {
+  describe('getIssues', () => {
     it('should fetch issues from a Jira project with provided credentials', async () => {
       const mockIssues = [
         {
@@ -28,32 +22,30 @@ describe('Jira Gateway', () => {
       ];
 
       const mockClient = {
-        get: vi.fn().mockResolvedValue({ data: { issues: mockIssues } }),
+        post: vi.fn().mockResolvedValue({ data: { issues: mockIssues } }),
       };
 
       vi.mocked(jiraConfigGateway.getJiraClient).mockReturnValue(mockClient);
 
-      const result = await jiraGateway.getPullRequests('PROJ');
+      const result = await jiraGateway.getIssues('PROJ');
 
       expect(result).toEqual(mockIssues);
-      expect(mockClient.get).toHaveBeenCalledWith(
+      expect(mockClient.post).toHaveBeenCalledWith(
         '/rest/api/3/search/jql',
         expect.objectContaining({
-          params: expect.objectContaining({
-            jql: 'project = "PROJ" AND type in (Task, Story, Bug)',
-          }),
+          jql: 'project = "PROJ" AND type in (Task, Story, Bug)',
         })
       );
     });
 
     it('should return empty array when no issues found', async () => {
       const mockClient = {
-        get: vi.fn().mockResolvedValue({ data: { issues: null } }),
+        post: vi.fn().mockResolvedValue({ data: { issues: null } }),
       };
 
       vi.mocked(jiraConfigGateway.getJiraClient).mockReturnValue(mockClient);
 
-      const result = await jiraGateway.getPullRequests('PROJ');
+      const result = await jiraGateway.getIssues('PROJ');
       
       expect(result).toEqual([]);
     });
@@ -63,25 +55,25 @@ describe('Jira Gateway', () => {
         throw new Error('Jira configuration not set. Please configure Jira credentials first.');
       });
 
-      await expect(jiraGateway.getPullRequests('PROJ')).rejects.toThrow('Jira API error');
+      await expect(jiraGateway.getIssues('PROJ')).rejects.toThrow('Jira API error');
     });
 
     it('should throw error on invalid project key', async () => {
-      await expect(jiraGateway.getPullRequests('')).rejects.toThrow('Invalid project key');
+      await expect(jiraGateway.getIssues('')).rejects.toThrow('Invalid project key');
     });
 
     it('should throw error on null project key', async () => {
-      await expect(jiraGateway.getPullRequests(null)).rejects.toThrow('Invalid project key');
+      await expect(jiraGateway.getIssues(null)).rejects.toThrow('Invalid project key');
     });
 
     it('should throw error on API failure', async () => {
       const mockClient = {
-        get: vi.fn().mockRejectedValue(new Error('Network error')),
+        post: vi.fn().mockRejectedValue(new Error('Network error')),
       };
 
       vi.mocked(jiraConfigGateway.getJiraClient).mockReturnValue(mockClient);
 
-      await expect(jiraGateway.getPullRequests('PROJ')).rejects.toThrow('Jira API error');
+      await expect(jiraGateway.getIssues('PROJ')).rejects.toThrow('Jira API error');
     });
   });
 

@@ -8,7 +8,7 @@ export const fetchProjectIssues = async (projectKey) => {
     }
 
     try {
-        const issues = await jiraGateway.getPullRequests(projectKey);
+        const issues = await jiraGateway.getIssues(projectKey);
 
         if (!Array.isArray(issues)) {
             return [];

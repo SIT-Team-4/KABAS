@@ -19,7 +19,7 @@ describe('Jira Service', () => {
           },
         },
       ];
-      vi.mocked(jiraGateway.getPullRequests).mockResolvedValue(mockIssues);
+      vi.mocked(jiraGateway.getIssues).mockResolvedValue(mockIssues);
 
       const result = await jiraService.fetchProjectIssues('PROJ');
 
