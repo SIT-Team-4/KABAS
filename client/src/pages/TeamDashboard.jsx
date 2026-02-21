@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Grid,
@@ -26,37 +26,32 @@ import { team, statusCards, tasks, getCountsByBucket } from "../data/mock";
 export default function TeamDashboard() {
   const [popupStatus, setPopupStatus] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
-  const counts = useMemo(() => getCountsByBucket(tasks), [tasks]);
+
+  // Since tasks/statusCards are mock constants, compute directly (no useMemo = no hook lint issues)
   const totalTasks = tasks.length;
+  const counts = getCountsByBucket(tasks);
 
-  const byStatus = useMemo(() => {
-  const map = {};
+  const byStatus = {};
   for (const s of statusCards) {
-      map[s.key] = tasks.filter((t) => t.bucket === s.key);
-    }
-    return map;
-  }, [tasks]);
+    byStatus[s.key] = tasks.filter((t) => t.bucket === s.key);
+  }
 
-  const rawMetaByBucket = useMemo(() => {
-    const buckets = {};
-
-    for (const s of statusCards) {
-      const list = tasks.filter((t) => t.bucket === s.key);
-
-      // Just get the first rawStatus found
-      const firstRaw = list.find((t) => t.rawStatus)?.rawStatus;
-
-      buckets[s.key] = {
-        rawLabel: firstRaw || s.label,
-      };
-    }
-
-    return buckets;
-  }, [tasks, statusCards]);
+  // Raw label to show on card (student's actual column name)
+  const rawMetaByBucket = {};
+  for (const s of statusCards) {
+    const list = byStatus[s.key] || [];
+    const firstRaw = list.find((t) => t.rawStatus)?.rawStatus;
+    rawMetaByBucket[s.key] = {
+      rawLabel: firstRaw || s.label, // fallback if rawStatus not available
+    };
+  }
 
   const meta = statusCards.find((s) => s.key === popupStatus);
   const list = popupStatus ? byStatus[popupStatus] : [];
-  
+
+  const displayStatusLabel =
+    (popupStatus && rawMetaByBucket[popupStatus]?.rawLabel) || meta?.label || "";
+
   return (
     <Box
       sx={{
@@ -106,11 +101,13 @@ export default function TeamDashboard() {
         </Button>
       </Box>
 
+      {/* Status Cards */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         {statusCards.map((s) => (
           <Grid item xs={12} sm={6} md={3} key={s.key}>
             <StatusCard
-              label={s.label}
+              // ✅ Only show raw label as main label
+              label={rawMetaByBucket[s.key]?.rawLabel || s.label}
               count={counts[s.key] ?? 0}
               total={totalTasks}
               color={s.color}
@@ -123,6 +120,7 @@ export default function TeamDashboard() {
         ))}
       </Grid>
 
+      {/* Placeholder panels */}
       <Grid container spacing={2.5}>
         <Grid item xs={12} md={4}>
           <Card sx={{ borderRadius: 3, minHeight: 380 }}>
@@ -163,8 +161,9 @@ export default function TeamDashboard() {
           </Card>
         </Grid>
       </Grid>
-      
-      <Card sx={{ borderRadius: 3, mt:3, mb: 3 }}>
+
+      {/* Team Performance (placeholder) */}
+      <Card sx={{ borderRadius: 3, mt: 3, mb: 3 }}>
         <CardContent sx={{ p: 3 }}>
           <Typography sx={{ fontWeight: 800, fontFamily: "JetBrains Mono, monospace", mb: 2 }}>
             Team Performance
@@ -184,131 +183,81 @@ export default function TeamDashboard() {
             </TableHead>
 
             <TableBody>
-                <TableRow hover>
-                  <TableCell>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <Avatar
-                        sx={{
-                          width: 36,
-                          height: 36,
-                          bgcolor: "rgba(247,144,9,0.14)",
-                          color: "#F79009",
-                          fontWeight: 800,
-                          fontSize: 13,
-                        }}
-                      >
-                        Initials
-                      </Avatar>
-                      <Typography sx={{ fontWeight: 700 }}>Placeholder</Typography>
-                    </Box>
-                  </TableCell>
-
-                  <TableCell sx={{ fontWeight: 700 }}>Placeholder</TableCell>
-
-                  <TableCell>
-                    <Chip
-                      label="Completed"
-                      size="small"
+              <TableRow hover>
+                <TableCell>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Avatar
                       sx={{
-                        bgcolor: "rgba(18,183,106,0.12)",
-                        color: "#12B76A",
+                        width: 36,
+                        height: 36,
+                        bgcolor: "rgba(247,144,9,0.14)",
+                        color: "#F79009",
                         fontWeight: 800,
-                        borderRadius: 1.5,
+                        fontSize: 13,
                       }}
-                    />
-                  </TableCell>
+                    >
+                      Initials
+                    </Avatar>
+                    <Typography sx={{ fontWeight: 700 }}>Placeholder</Typography>
+                  </Box>
+                </TableCell>
 
-                  <TableCell>
-                    <Chip
-                      label="in Progress"
-                      size="small"
-                      sx={{
-                        bgcolor: "rgba(46,144,250,0.12)",
-                        color: "#2E90FA",
-                        fontWeight: 800,
-                        borderRadius: 1.5,
-                      }}
-                    />
-                  </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Placeholder</TableCell>
 
-                  <TableCell sx={{ fontWeight: 700 }}></TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}></TableCell>
+                <TableCell>
+                  <Chip
+                    label="Completed"
+                    size="small"
+                    sx={{
+                      bgcolor: "rgba(18,183,106,0.12)",
+                      color: "#12B76A",
+                      fontWeight: 800,
+                      borderRadius: 1.5,
+                    }}
+                  />
+                </TableCell>
 
-                  <TableCell>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                      <TrendingDownRoundedIcon sx={{ fontSize: 18, color: "#F04438" }} />
-                      <Typography sx={{ fontWeight: 800, color: "#F04438" }}>
-                        Placeholder
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                </TableRow>
+                <TableCell>
+                  <Chip
+                    label="In Progress"
+                    size="small"
+                    sx={{
+                      bgcolor: "rgba(46,144,250,0.12)",
+                      color: "#2E90FA",
+                      fontWeight: 800,
+                      borderRadius: 1.5,
+                    }}
+                  />
+                </TableCell>
+
+                <TableCell sx={{ fontWeight: 700 }}></TableCell>
+                <TableCell sx={{ fontWeight: 700 }}></TableCell>
+
+                <TableCell>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                    <TrendingDownRoundedIcon sx={{ fontSize: 18, color: "#F04438" }} />
+                    <Typography sx={{ fontWeight: 800, color: "#F04438" }}>Placeholder</Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      {/* ===== PLACEHOLDER: Latest Activity ===== */}
-      <Card sx={{ borderRadius: 3 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Typography sx={{ fontWeight: 800, fontFamily: "JetBrains Mono, monospace" }}>
-            Latest Activity
-          </Typography>
-          <Typography sx={{ mt: 0.75, color: "text.secondary", fontSize: 13 }}>
-            Most recent task for each member
-          </Typography>
-
-          <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ borderRadius: 3, height: "100%" }}>
-                  <CardContent sx={{ p: 2.5 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <Avatar
-                        sx={{
-                          width: 46,
-                          height: 46,
-                          bgcolor: "rgba(247,144,9,0.14)",
-                          color: "#F79009",
-                          fontWeight: 800,
-                        }}
-                      >
-                      </Avatar>
-
-                      <Box>
-                        <Typography sx={{ fontWeight: 800, fontFamily: "JetBrains Mono, monospace" }}>
-                        </Typography>
-                        <Typography sx={{ color: "text.secondary", fontSize: 13 }}>
-                          Placeholder
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75}}>
-                        <Typography sx={{ fontWeight: 800}}>
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Typography sx={{ mt: 1.5, fontWeight: 800, fontFamily: "JetBrains Mono, monospace" }}>
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-      
+      {/* Modal 1: task list */}
       <TasksModal
         open={!!popupStatus}
         onClose={() => setPopupStatus(null)}
-        title={`${meta?.label ?? ""} Tasks (${list.length})`}
+        title={`${displayStatusLabel} Tasks (${list.length})`}
         tasks={list}
-        statusLabel={meta?.label ?? ""}
+        statusLabel={displayStatusLabel}
         statusColor={meta?.color}
         statusTint={meta?.tint}
         onSelectTask={(task) => setSelectedTask(task)}
       />
+
+      {/* Modal 2: task details */}
       <TaskDetailsModal
         open={!!selectedTask}
         onClose={() => setSelectedTask(null)}
