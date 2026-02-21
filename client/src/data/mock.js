@@ -5,6 +5,7 @@ export const STATUS_BUCKETS = {
   backlog: "backlog",
 };
 
+// Card definitions (colors match your UI styling)
 export const statusCards = [
   { key: STATUS_BUCKETS.todo, label: "To-Do", color: "#7C3AED", tint: "#F3E8FF" },
   { key: STATUS_BUCKETS.in_progress, label: "In Progress", color: "#2563EB", tint: "#E0EAFF" },

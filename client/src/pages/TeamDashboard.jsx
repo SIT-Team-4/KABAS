@@ -438,6 +438,7 @@ export default function TeamDashboard() {
     return <Navigate to={`/teams/${DEFAULT_TEAM_ID}`} replace />;
   }
 
+
   return (
     <Box sx={{ maxWidth: 2000, mx: "auto", pt: 1, pb: 6 }}>
       {/* Header */}

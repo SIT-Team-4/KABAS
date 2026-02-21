@@ -1,3 +1,7 @@
+/**
+ * @module config/db
+ * @description Sequelize instance configured from environment variables.
+ */
 import { Sequelize } from 'sequelize';
 
 const sequelize = new Sequelize(
