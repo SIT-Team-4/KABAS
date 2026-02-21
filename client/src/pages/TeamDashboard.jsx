@@ -20,22 +20,43 @@ import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
 
 import StatusCard from "../components/StatusCard";
 import TasksModal from "../components/TasksModal";
-import { team, statusCards, tasks } from "../data/mock";
+import TaskDetailsModal from "../components/TaskDetailsModal";
+import { team, statusCards, tasks, getCountsByBucket } from "../data/mock";
 
 export default function TeamDashboard() {
   const [popupStatus, setPopupStatus] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const counts = useMemo(() => getCountsByBucket(tasks), [tasks]);
+  const totalTasks = tasks.length;
 
   const byStatus = useMemo(() => {
-    const map = {};
-    for (const s of statusCards) {
-      map[s.key] = tasks.filter((t) => t.status === s.key);
+  const map = {};
+  for (const s of statusCards) {
+      map[s.key] = tasks.filter((t) => t.bucket === s.key);
     }
     return map;
-  }, []);
+  }, [tasks]);
+
+  const rawMetaByBucket = useMemo(() => {
+    const buckets = {};
+
+    for (const s of statusCards) {
+      const list = tasks.filter((t) => t.bucket === s.key);
+
+      // Just get the first rawStatus found
+      const firstRaw = list.find((t) => t.rawStatus)?.rawStatus;
+
+      buckets[s.key] = {
+        rawLabel: firstRaw || s.label,
+      };
+    }
+
+    return buckets;
+  }, [tasks, statusCards]);
 
   const meta = statusCards.find((s) => s.key === popupStatus);
   const list = popupStatus ? byStatus[popupStatus] : [];
-
+  
   return (
     <Box
       sx={{
@@ -65,7 +86,7 @@ export default function TeamDashboard() {
             {team.name}
           </Typography>
           <Typography sx={{ mt: 0.5, color: "text.secondary", fontSize: 13 }}>
-            {team.members} members • {team.totalTasks} tasks tracked
+            {team.members} members • {totalTasks} tasks tracked
           </Typography>
         </Box>
 
@@ -90,8 +111,8 @@ export default function TeamDashboard() {
           <Grid item xs={12} sm={6} md={3} key={s.key}>
             <StatusCard
               label={s.label}
-              count={s.count}
-              total={team.totalTasks}
+              count={counts[s.key] ?? 0}
+              total={totalTasks}
               color={s.color}
               tint={s.tint}
               iconKey={s.key}
@@ -142,7 +163,6 @@ export default function TeamDashboard() {
           </Card>
         </Grid>
       </Grid>
-      
       
       <Card sx={{ borderRadius: 3, mt:3, mb: 3 }}>
         <CardContent sx={{ p: 3 }}>
@@ -279,8 +299,6 @@ export default function TeamDashboard() {
         </CardContent>
       </Card>
       
-
-      {/* Prototype-style center popup */}
       <TasksModal
         open={!!popupStatus}
         onClose={() => setPopupStatus(null)}
@@ -289,6 +307,12 @@ export default function TeamDashboard() {
         statusLabel={meta?.label ?? ""}
         statusColor={meta?.color}
         statusTint={meta?.tint}
+        onSelectTask={(task) => setSelectedTask(task)}
+      />
+      <TaskDetailsModal
+        open={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        task={selectedTask}
       />
     </Box>
   );
