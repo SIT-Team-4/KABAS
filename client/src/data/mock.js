@@ -1,25 +1,165 @@
-export const team = { name: "Team Alpha", members: 4, totalTasks: 11 };
+export const team = {
+  id: "team-alpha",
+  name: "Team Alpha",
+  members: 4,
+  totalTasks: 45,
+};
 
+export const members = [
+  { id: "u1", name: "Alice Chen", initials: "AC" },
+  { id: "u2", name: "Bob Smith", initials: "BS" },
+  { id: "u3", name: "Carol Wang", initials: "CW" },
+  { id: "u4", name: "David Lee", initials: "DL" },
+];
+
+// We standardize buckets for the dashboard cards.
+// Backend can later normalize Jira/GitHub statuses into these buckets.
+export const STATUS_BUCKETS = {
+  todo: "todo",
+  in_progress: "in_progress",
+  completed: "completed",
+  backlog: "backlog",
+};
+
+// Card definitions (colors match your UI styling)
 export const statusCards = [
-  { key: "todo", label: "To-Do", count: 5, color: "#7F56D9", tint: "rgba(127,86,217,0.12)" },
-  { key: "in_progress", label: "In Progress", count: 3, color: "#2E90FA", tint: "rgba(46,144,250,0.12)" },
-  { key: "completed", label: "Completed", count: 2, color: "#12B76A", tint: "rgba(18,183,106,0.12)" },
-  { key: "backlog", label: "Backlog", count: 1, color: "#F79009", tint: "rgba(247,144,9,0.14)" }
+  {
+    key: STATUS_BUCKETS.todo,
+    label: "To-Do",
+    color: "#7C3AED",   // text/icon color
+    tint: "#F3E8FF",    // background tint
+  },
+  {
+    key: STATUS_BUCKETS.in_progress,
+    label: "In Progress",
+    color: "#2563EB",
+    tint: "#E0EAFF",
+  },
+  {
+    key: STATUS_BUCKETS.completed,
+    label: "Completed",
+    color: "#16A34A",
+    tint: "#DCFCE7",
+  },
+  {
+    key: STATUS_BUCKETS.backlog,
+    label: "Backlog",
+    color: "#F97316",
+    tint: "#FFEDD5",
+  },
 ];
 
+// ✅ Tasks array supports both modals.
+// Important fields:
+// - bucket: used for counts/filtering (stable)
+// - rawStatus: what team actually calls it (optional display)
+// - createdAt / startedAt: for details modal
+// - durationInStatusDays: lets you show "7 days" etc.
 export const tasks = [
-  { id: "K-101", title: "Implement search feature", owner: "Alice Chen", status: "todo", priority: "high", ageDays: 27 },
-  { id: "K-102", title: "Design user profile page", owner: "Carol Wang", status: "todo", priority: "low", ageDays: 1 },
-  { id: "K-103", title: "Create dashboard UI", owner: "Carol Wang", status: "todo", priority: "low", ageDays: 18 },
-  { id: "K-104", title: "Add data validation", owner: "Bob Smith", status: "todo", priority: "high", ageDays: 26 },
-  { id: "K-105", title: "Create API endpoints", owner: "Alice Chen", status: "todo", priority: "low", ageDays: 57 },
-
-  { id: "K-201", title: "Optimize database queries", owner: "Bob Smith", status: "in_progress", priority: "high", ageDays: 52 },
-  { id: "K-202", title: "Deploy to production", owner: "Bob Smith", status: "in_progress", priority: "high", ageDays: 50 },
-  { id: "K-203", title: "Design user profile page", owner: "Alice Chen", status: "in_progress", priority: "low", ageDays: 48 },
-
-  { id: "K-301", title: "Write unit tests", owner: "David Lee", status: "completed", priority: "low", ageDays: 12 },
-  { id: "K-302", title: "Update documentation", owner: "Alice Chen", status: "completed", priority: "low", ageDays: 9 },
-
-  { id: "K-401", title: "Refactor code structure", owner: "Carol Wang", status: "backlog", priority: "low", ageDays: 43 }
+  {
+    id: "TASK-12",
+    title: "Add data validation",
+    ownerId: "u3",
+    owner: "Carol Wang",
+    ownerInitials: "CW",
+    priority: "medium", // low | medium | high
+    bucket: STATUS_BUCKETS.in_progress,
+    rawStatus: "In Review",
+    durationInStatusDays: 7,
+    createdAt: "2026-02-10T03:05:00Z",
+    startedAt: "2026-02-13T09:16:00Z",
+  },
+  {
+    id: "TASK-15",
+    title: "Implement search feature",
+    ownerId: "u1",
+    owner: "Alice Chen",
+    ownerInitials: "AC",
+    priority: "high",
+    bucket: STATUS_BUCKETS.todo,
+    rawStatus: "To Do",
+    durationInStatusDays: 27,
+    createdAt: "2026-01-15T02:20:00Z",
+    startedAt: null,
+  },
+  {
+    id: "TASK-22",
+    title: "Create API endpoints",
+    ownerId: "u1",
+    owner: "Alice Chen",
+    ownerInitials: "AC",
+    priority: "low",
+    bucket: STATUS_BUCKETS.todo,
+    rawStatus: "Backlog Grooming",
+    durationInStatusDays: 57,
+    createdAt: "2025-12-10T04:00:00Z",
+    startedAt: null,
+  },
+  {
+    id: "TASK-33",
+    title: "Design user profile page",
+    ownerId: "u4",
+    owner: "David Lee",
+    ownerInitials: "DL",
+    priority: "low",
+    bucket: STATUS_BUCKETS.todo,
+    rawStatus: "Ready",
+    durationInStatusDays: 18,
+    createdAt: "2026-01-22T08:00:00Z",
+    startedAt: null,
+  },
+  {
+    id: "TASK-44",
+    title: "Write unit tests",
+    ownerId: "u2",
+    owner: "Bob Smith",
+    ownerInitials: "BS",
+    priority: "high",
+    bucket: STATUS_BUCKETS.completed,
+    rawStatus: "Done",
+    durationInStatusDays: 15,
+    createdAt: "2026-01-08T06:00:00Z",
+    startedAt: "2026-01-12T10:00:00Z",
+  },
+  {
+    id: "TASK-48",
+    title: "Optimize database queries",
+    ownerId: "u2",
+    owner: "Bob Smith",
+    ownerInitials: "BS",
+    priority: "medium",
+    bucket: STATUS_BUCKETS.backlog,
+    rawStatus: "Icebox",
+    durationInStatusDays: 43,
+    createdAt: "2025-12-01T02:00:00Z",
+    startedAt: null,
+  },
 ];
+
+// --- Helpers you can use in TeamDashboard.jsx ---
+
+export function formatDays(days) {
+  if (days === null || days === undefined) return "-";
+  return `${days} days`;
+}
+
+// Count tasks by bucket
+export function getCountsByBucket(tasksArr) {
+  return tasksArr.reduce(
+    (acc, t) => {
+      acc[t.bucket] = (acc[t.bucket] || 0) + 1;
+      return acc;
+    },
+    { todo: 0, in_progress: 0, completed: 0, backlog: 0 }
+  );
+}
+
+// Count tasks per member
+export function getMemberTaskCounts(tasksArr) {
+  const map = {};
+  for (const t of tasksArr) {
+    const key = t.ownerId || t.owner;
+    map[key] = (map[key] || 0) + 1;
+  }
+  return map;
+}
