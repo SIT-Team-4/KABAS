@@ -1,5 +1,11 @@
 import * as jiraService from '../services/jiraService.js';
 
+/**
+ * Get all issues for a Jira project.
+ * @param {import('express').Request} req - Express request with projectKey param.
+ * @param {import('express').Response} res - Express response.
+ * @param {import('express').NextFunction} next - Express next middleware.
+ */
 export const getProjectIssues = async (req, res, next) => {
     try {
         const { projectKey } = req?.params || {};
@@ -18,6 +24,12 @@ export const getProjectIssues = async (req, res, next) => {
     }
 };
 
+/**
+ * Get detailed information for a single Jira issue.
+ * @param {import('express').Request} req - Express request with issueKey param.
+ * @param {import('express').Response} res - Express response.
+ * @param {import('express').NextFunction} next - Express next middleware.
+ */
 export const getIssueDetails = async (req, res, next) => {
     try {
         const { issueKey } = req?.params || {};

@@ -1,6 +1,12 @@
+/**
+ * @module routes/index
+ * @description Root API router that mounts all sub-routers.
+ */
 import express from 'express';
 import githubRoutes from './github.js';
 import jiraRouter from './jira.js';
+import classGroupRoutes from './classGroups.js';
+import teamRoutes from './teams.js';
 
 const router = express.Router();
 
@@ -10,9 +16,7 @@ router.get('/', (req, res) => {
 
 router.use('/github', githubRoutes);
 router.use('/jira', jiraRouter);
-
-export const configureRoutes = (app) => {
-    app.use('/api', router);
-};
+router.use('/class-groups', classGroupRoutes);
+router.use('/teams', teamRoutes);
 
 export default router;

@@ -1,0 +1,365 @@
+{
+  "info": {
+    "name": "KABAS - Teams Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api"
+    },
+    {
+      "key": "adminApiKey",
+      "value": "<your-admin-api-key>"
+    },
+    {
+      "key": "teamId",
+      "value": "1"
+    },
+    {
+      "key": "classGroupId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Teams",
+      "item": [
+        {
+          "name": "Create Team (no class group)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Team Alpha\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teams",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams"]
+            }
+          }
+        },
+        {
+          "name": "Create Team (with class group)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Team Beta\",\n  \"classGroupId\": {{classGroupId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teams",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams"]
+            }
+          }
+        },
+        {
+          "name": "List All Teams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/teams",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams"]
+            }
+          }
+        },
+        {
+          "name": "List Teams by Class Group",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/teams?classGroupId={{classGroupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams"],
+              "query": [
+                {
+                  "key": "classGroupId",
+                  "value": "{{classGroupId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Team by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Team",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Team Alpha (Renamed)\",\n  \"classGroupId\": {{classGroupId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Team",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Team Credentials",
+      "item": [
+        {
+          "name": "Create Credential (Jira)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"jira\",\n  \"baseUrl\": \"https://your-site.atlassian.net\",\n  \"email\": \"user@example.com\",\n  \"apiToken\": \"your-jira-api-token\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}/credentials",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}", "credentials"]
+            }
+          }
+        },
+        {
+          "name": "Create Credential (GitHub)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"github\",\n  \"apiToken\": \"ghp_your-github-token\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}/credentials",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}", "credentials"]
+            }
+          }
+        },
+        {
+          "name": "Get Credential (apiToken hidden)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}/credentials",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}", "credentials"]
+            }
+          }
+        },
+        {
+          "name": "Update Credential",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"apiToken\": \"new-rotated-api-token\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}/credentials",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}", "credentials"]
+            }
+          }
+        },
+        {
+          "name": "Delete Credential",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}/credentials",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}", "credentials"]
+            }
+          }
+        },
+        {
+          "name": "Create Credential - No Auth (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"jira\",\n  \"apiToken\": \"secret\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}/credentials",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}", "credentials"]
+            }
+          }
+        },
+        {
+          "name": "Create Credential - Invalid Provider (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"gitlab\",\n  \"apiToken\": \"secret\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}/credentials",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}", "credentials"]
+            }
+          }
+        },
+        {
+          "name": "Create Credential - Duplicate (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"jira\",\n  \"apiToken\": \"another-token\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}/credentials",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}", "credentials"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

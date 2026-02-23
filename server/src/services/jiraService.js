@@ -2,6 +2,12 @@ import * as jiraGateway from '../gateways/jiraGateway.js';
 
 const JIRA_BASE_URL = process.env.JIRA_BASE_URL ?? '';
 
+/**
+ * Fetch all issues for a Jira project and normalize them.
+ * @param {string} projectKey - The Jira project key (e.g. "KBAS").
+ * @returns {Promise<Array<Object>>} Array of normalized issue objects.
+ * @throws {Error} If projectKey is invalid or the API call fails.
+ */
 export const fetchProjectIssues = async (projectKey) => {
     if (!projectKey || typeof projectKey !== 'string') {
         throw new Error('Project key is required and must be a string');
@@ -32,6 +38,12 @@ export const fetchProjectIssues = async (projectKey) => {
     }
 };
 
+/**
+ * Fetch detailed information for a single Jira issue.
+ * @param {string} issueKey - The Jira issue key (e.g. "KBAS-123").
+ * @returns {Promise<Object>} Normalized issue detail object.
+ * @throws {Error} If issueKey is invalid or the API call fails.
+ */
 export const fetchIssueDetails = async (issueKey) => {
     if (!issueKey || typeof issueKey !== 'string') {
         throw new Error('Issue key is required and must be a string');

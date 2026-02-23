@@ -1,5 +1,11 @@
 import * as jiraConfigGateway from './jiraConfigGateway.js';
 
+/**
+ * Fetch all issues for a Jira project using JQL search with token-based pagination.
+ * @param {string} projectKey - The Jira project key (e.g. "KBAS").
+ * @returns {Promise<Array<Object>>} Array of raw Jira issue objects.
+ * @throws {Error} If the project key is invalid or the API call fails.
+ */
 export const getIssues = async (projectKey) => {
     if (!projectKey || typeof projectKey !== 'string') {
         throw new Error('Invalid project key');
@@ -41,6 +47,12 @@ export const getIssues = async (projectKey) => {
     }
 };
 
+/**
+ * Fetch detailed information for a single Jira issue by key.
+ * @param {string} issueKey - The Jira issue key (e.g. "KBAS-123").
+ * @returns {Promise<Object>} Raw Jira issue data.
+ * @throws {Error} If the issue key is invalid or the API call fails.
+ */
 export const getIssueDetails = async (issueKey) => {
     if (!issueKey || typeof issueKey !== 'string') {
         throw new Error('Invalid issue key');
