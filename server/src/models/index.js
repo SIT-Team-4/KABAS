@@ -11,4 +11,9 @@ Team.belongsTo(ClassGroup, { foreignKey: 'classGroupId' });
 Team.hasOne(TeamCredential, { foreignKey: 'teamId', onDelete: 'CASCADE' });
 TeamCredential.belongsTo(Team, { foreignKey: 'teamId' });
 
-export { sequelize, ClassGroup, Team, TeamCredential };
+export {
+    sequelize,
+    ClassGroup,
+    Team,
+    TeamCredential,
+};

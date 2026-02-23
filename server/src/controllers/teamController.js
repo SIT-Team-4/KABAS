@@ -11,14 +11,14 @@ export async function create(req, res, next) {
             stripUnknown: true,
         });
         const team = await teamService.createTeam(data);
-        res.status(201).json({ success: true, data: team });
+        return res.status(201).json({ success: true, data: team });
     } catch (err) {
         if (err.name === 'ValidationError') {
             return res
                 .status(400)
                 .json({ success: false, error: err.errors.join(', ') });
         }
-        next(err);
+        return next(err);
     }
 }
 
@@ -47,14 +47,14 @@ export async function update(req, res, next) {
             stripUnknown: true,
         });
         const team = await teamService.updateTeam(req.params.teamId, data);
-        res.json({ success: true, data: team });
+        return res.json({ success: true, data: team });
     } catch (err) {
         if (err.name === 'ValidationError') {
             return res
                 .status(400)
                 .json({ success: false, error: err.errors.join(', ') });
         }
-        next(err);
+        return next(err);
     }
 }
 

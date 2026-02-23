@@ -11,14 +11,14 @@ export async function create(req, res, next) {
             stripUnknown: true,
         });
         const classGroup = await classGroupService.createClassGroup(data);
-        res.status(201).json({ success: true, data: classGroup });
+        return res.status(201).json({ success: true, data: classGroup });
     } catch (err) {
         if (err.name === 'ValidationError') {
             return res
                 .status(400)
                 .json({ success: false, error: err.errors.join(', ') });
         }
-        next(err);
+        return next(err);
     }
 }
 
@@ -52,14 +52,14 @@ export async function update(req, res, next) {
             req.params.id,
             data,
         );
-        res.json({ success: true, data: classGroup });
+        return res.json({ success: true, data: classGroup });
     } catch (err) {
         if (err.name === 'ValidationError') {
             return res
                 .status(400)
                 .json({ success: false, error: err.errors.join(', ') });
         }
-        next(err);
+        return next(err);
     }
 }
 
