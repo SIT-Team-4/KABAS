@@ -4,6 +4,12 @@ import {
 } from '../validation/classGroupSchema.js';
 import * as classGroupService from '../services/classGroupService.js';
 
+/**
+ * Create a new class group.
+ * @param {import('express').Request} req - Express request with class group data in body.
+ * @param {import('express').Response} res - Express response.
+ * @param {import('express').NextFunction} next - Express next middleware.
+ */
 export async function create(req, res, next) {
     try {
         const data = await createClassGroupSchema.validate(req.body, {
@@ -22,6 +28,12 @@ export async function create(req, res, next) {
     }
 }
 
+/**
+ * Get all class groups.
+ * @param {import('express').Request} req - Express request.
+ * @param {import('express').Response} res - Express response.
+ * @param {import('express').NextFunction} next - Express next middleware.
+ */
 export async function getAll(req, res, next) {
     try {
         const classGroups = await classGroupService.getAllClassGroups();
@@ -31,6 +43,12 @@ export async function getAll(req, res, next) {
     }
 }
 
+/**
+ * Get a single class group by ID, including its teams.
+ * @param {import('express').Request} req - Express request with id param.
+ * @param {import('express').Response} res - Express response.
+ * @param {import('express').NextFunction} next - Express next middleware.
+ */
 export async function getById(req, res, next) {
     try {
         const classGroup = await classGroupService.getClassGroupById(
@@ -42,6 +60,12 @@ export async function getById(req, res, next) {
     }
 }
 
+/**
+ * Update an existing class group.
+ * @param {import('express').Request} req - Express request with id param and update data in body.
+ * @param {import('express').Response} res - Express response.
+ * @param {import('express').NextFunction} next - Express next middleware.
+ */
 export async function update(req, res, next) {
     try {
         const data = await updateClassGroupSchema.validate(req.body, {
@@ -63,6 +87,12 @@ export async function update(req, res, next) {
     }
 }
 
+/**
+ * Delete a class group by ID.
+ * @param {import('express').Request} req - Express request with id param.
+ * @param {import('express').Response} res - Express response.
+ * @param {import('express').NextFunction} next - Express next middleware.
+ */
 export async function remove(req, res, next) {
     try {
         await classGroupService.deleteClassGroup(req.params.id);

@@ -1,3 +1,7 @@
+/**
+ * @module models/ClassGroup
+ * @description Sequelize model for class groups (semester/cohort containers for teams).
+ */
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 

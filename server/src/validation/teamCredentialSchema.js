@@ -1,5 +1,11 @@
+/**
+ * @module validation/teamCredentialSchema
+ * @description Yup schemas for creating and updating team credentials.
+ * Jira provider requires baseUrl and email; GitHub does not.
+ */
 import * as yup from 'yup';
 
+/** Validation schema for creating a team credential. */
 export const createTeamCredentialSchema = yup.object({
     provider: yup
         .string()
@@ -26,6 +32,7 @@ export const createTeamCredentialSchema = yup.object({
     apiToken: yup.string().required('API token is required'),
 });
 
+/** Validation schema for updating a team credential. */
 export const updateTeamCredentialSchema = yup.object({
     provider: yup
         .string()

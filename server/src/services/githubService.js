@@ -7,6 +7,11 @@ import {
 
 const TIMELINE_BATCH_SIZE = 10;
 
+/**
+ * Translate a GitHub API error into a user-friendly error with status code.
+ * @param {Error} error - The original error from the GitHub API.
+ * @returns {Error} A new error with an appropriate HTTP status.
+ */
 function translateError(error) {
     const status = error.status || 500;
     const isRateLimit = status === 403
@@ -29,6 +34,13 @@ function translateError(error) {
     return err;
 }
 
+/**
+ * Normalize a raw GitHub issue into a consistent shape with column and timeline data.
+ * @param {Object} raw - Raw issue object from the GitHub API.
+ * @param {Map<number,string>} columnMap - Map of issue number to project board column name.
+ * @param {Array} timelineEvents - Timeline events for this issue.
+ * @returns {Object} Normalized issue object.
+ */
 function normalizeIssue(raw, columnMap, timelineEvents) {
     return {
         number: raw.number,
@@ -51,6 +63,11 @@ function normalizeIssue(raw, columnMap, timelineEvents) {
     };
 }
 
+/**
+ * Build a Map of issue number to project board column name from board items.
+ * @param {Array} boardItems - Items from the GitHub ProjectV2 board.
+ * @returns {Map<number,string>} Map of issue number to column name.
+ */
 function buildColumnMap(boardItems) {
     const map = new Map();
     boardItems.forEach((item) => {
@@ -63,6 +80,14 @@ function buildColumnMap(boardItems) {
     return map;
 }
 
+/**
+ * Fetch and assemble Kanban board data for a GitHub repository.
+ * Retrieves issues, board statuses, and timeline events in batches.
+ * @param {string} token - GitHub personal access token.
+ * @param {string} owner - Repository owner.
+ * @param {string} repo - Repository name.
+ * @returns {Promise<Object>} Kanban data with repository info and normalized issues.
+ */
 async function getKanbanData(token, owner, repo) {
     const octokit = new Octokit({ auth: token });
     let issues;

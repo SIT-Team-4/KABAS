@@ -1,3 +1,7 @@
+/**
+ * @module models/Team
+ * @description Sequelize model for teams, optionally belonging to a class group.
+ */
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 

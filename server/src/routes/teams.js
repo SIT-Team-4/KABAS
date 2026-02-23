@@ -1,3 +1,7 @@
+/**
+ * @module routes/teams
+ * @description Team and team credential CRUD routes (admin-only, requires auth).
+ */
 import express from 'express';
 import auth from '../middleware/auth.js';
 import * as teamController from '../controllers/teamController.js';

@@ -1,3 +1,7 @@
+/**
+ * @module routes/index
+ * @description Root API router that mounts all sub-routers.
+ */
 import express from 'express';
 import githubRoutes from './github.js';
 import jiraRouter from './jira.js';

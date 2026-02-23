@@ -1,3 +1,7 @@
+/**
+ * @module routes/classGroups
+ * @description Class group CRUD routes (admin-only, requires auth).
+ */
 import express from 'express';
 import auth from '../middleware/auth.js';
 import * as classGroupController from '../controllers/classGroupController.js';

@@ -1,3 +1,8 @@
+/**
+ * @module models/TeamCredential
+ * @description Sequelize model for team credentials. Encrypts email and apiToken at rest
+ * using AES-256-GCM via custom getters/setters.
+ */
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 import { encrypt, decrypt } from '../utils/crypto.js';

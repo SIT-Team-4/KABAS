@@ -2,6 +2,11 @@ import crypto from 'crypto';
 
 const ALGORITHM = 'aes-256-gcm';
 
+/**
+ * Retrieve and validate the 32-byte encryption key from the environment.
+ * @returns {Buffer} The encryption key as a Buffer.
+ * @throws {Error} If ENCRYPTION_KEY is missing or not a valid 64-char hex string.
+ */
 function getKey() {
     const key = process.env.ENCRYPTION_KEY;
     if (!key || !/^[0-9a-fA-F]{64}$/.test(key)) {
@@ -12,6 +17,11 @@ function getKey() {
     return Buffer.from(key, 'hex');
 }
 
+/**
+ * Encrypt a plaintext string using AES-256-GCM.
+ * @param {string} text - The plaintext to encrypt.
+ * @returns {string} Encrypted string in the format `iv:authTag:ciphertext` (hex-encoded).
+ */
 export function encrypt(text) {
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv(ALGORITHM, getKey(), iv);
@@ -23,6 +33,11 @@ export function encrypt(text) {
     return `${iv.toString('hex')}:${tag.toString('hex')}:${encrypted.toString('hex')}`;
 }
 
+/**
+ * Decrypt an AES-256-GCM encrypted string.
+ * @param {string} text - The encrypted string in `iv:authTag:ciphertext` format.
+ * @returns {string|null} The decrypted plaintext, or null if input is invalid.
+ */
 export function decrypt(text) {
     if (!text || typeof text !== 'string') return null;
     const parts = text.split(':');

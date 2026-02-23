@@ -1,3 +1,7 @@
+/**
+ * @module models/index
+ * @description Registers Sequelize model associations and re-exports all models.
+ */
 import sequelize from '../config/db.js';
 import ClassGroup from './ClassGroup.js';
 import Team from './Team.js';
