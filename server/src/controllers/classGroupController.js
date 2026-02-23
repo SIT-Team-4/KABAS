@@ -36,7 +36,11 @@ export async function create(req, res, next) {
  */
 export async function getAll(req, res, next) {
     try {
-        const classGroups = await classGroupService.getAllClassGroups();
+        const { limit, offset } = req.query;
+        const classGroups = await classGroupService.getAllClassGroups({
+            limit: limit ? Number(limit) : undefined,
+            offset: offset ? Number(offset) : undefined,
+        });
         res.json({ success: true, data: classGroups });
     } catch (err) {
         next(err);

@@ -59,14 +59,32 @@ describe('classGroupController', () => {
                 mockClassGroup,
             ]);
 
-            const req = {};
+            const req = { query: {} };
             const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
             await classGroupController.getAll(req, res, vi.fn());
 
+            expect(classGroupService.getAllClassGroups).toHaveBeenCalledWith({
+                limit: undefined,
+                offset: undefined,
+            });
             expect(res.json).toHaveBeenCalledWith({
                 success: true,
                 data: [mockClassGroup],
+            });
+        });
+
+        it('should forward limit and offset query params', async () => {
+            vi.mocked(classGroupService.getAllClassGroups).mockResolvedValue([]);
+
+            const req = { query: { limit: '10', offset: '20' } };
+            const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
+
+            await classGroupController.getAll(req, res, vi.fn());
+
+            expect(classGroupService.getAllClassGroups).toHaveBeenCalledWith({
+                limit: 10,
+                offset: 20,
             });
         });
     });

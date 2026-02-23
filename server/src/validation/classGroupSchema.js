@@ -17,7 +17,7 @@ export const createClassGroupSchema = yup.object({
 
 /** Validation schema for updating a class group. Requires both dates if either is provided. */
 export const updateClassGroupSchema = yup.object({
-    name: yup.string().trim(),
+    name: yup.string().trim().min(1, 'Name cannot be empty'),
     startDate: yup.date(),
     endDate: yup
         .date()

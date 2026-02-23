@@ -81,4 +81,20 @@ describe('crypto utils', () => {
         expect(decrypt('not-valid-format')).toBeNull();
         expect(decrypt('only:two')).toBeNull();
     });
+
+    it('should return null for tampered ciphertext', () => {
+        const encrypted = encrypt('secret');
+        const parts = encrypted.split(':');
+        // Corrupt the ciphertext portion
+        parts[2] = 'ff'.repeat(parts[2].length / 2);
+        expect(decrypt(parts.join(':'))).toBeNull();
+    });
+
+    it('should return null for tampered auth tag', () => {
+        const encrypted = encrypt('secret');
+        const parts = encrypted.split(':');
+        // Corrupt the auth tag
+        parts[1] = '00'.repeat(16);
+        expect(decrypt(parts.join(':'))).toBeNull();
+    });
 });

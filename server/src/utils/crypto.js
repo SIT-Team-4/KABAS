@@ -42,15 +42,19 @@ export function decrypt(text) {
     if (!text || typeof text !== 'string') return null;
     const parts = text.split(':');
     if (parts.length !== 3) return null;
-    const [ivHex, tagHex, encryptedHex] = parts;
-    const iv = Buffer.from(ivHex, 'hex');
-    const tag = Buffer.from(tagHex, 'hex');
-    const encrypted = Buffer.from(encryptedHex, 'hex');
-    const decipher = crypto.createDecipheriv(ALGORITHM, getKey(), iv);
-    decipher.setAuthTag(tag);
-    const decrypted = Buffer.concat([
-        decipher.update(encrypted),
-        decipher.final(),
-    ]);
-    return decrypted.toString('utf8');
+    try {
+        const [ivHex, tagHex, encryptedHex] = parts;
+        const iv = Buffer.from(ivHex, 'hex');
+        const tag = Buffer.from(tagHex, 'hex');
+        const encrypted = Buffer.from(encryptedHex, 'hex');
+        const decipher = crypto.createDecipheriv(ALGORITHM, getKey(), iv);
+        decipher.setAuthTag(tag);
+        const decrypted = Buffer.concat([
+            decipher.update(encrypted),
+            decipher.final(),
+        ]);
+        return decrypted.toString('utf8');
+    } catch {
+        return null;
+    }
 }
