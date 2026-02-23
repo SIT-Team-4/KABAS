@@ -6,7 +6,7 @@ vi.mock('../services/teamCredentialService.js');
 
 describe('teamCredentialController', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        vi.resetAllMocks();
     });
 
     const mockCredential = {
@@ -79,7 +79,7 @@ describe('teamCredentialController', () => {
             const req = {
                 params: { teamId: '999' },
                 body: {
-                    provider: 'jira',
+                    provider: 'github',
                     apiToken: 'secret',
                 },
             };
@@ -93,7 +93,7 @@ describe('teamCredentialController', () => {
     });
 
     describe('get', () => {
-        it('should return credential without apiToken', async () => {
+        it('should return credential data', async () => {
             vi.mocked(teamCredentialService.getCredential).mockResolvedValue(
                 mockCredential,
             );
@@ -103,12 +103,11 @@ describe('teamCredentialController', () => {
 
             await teamCredentialController.get(req, res, vi.fn());
 
-            expect(res.json).toHaveBeenCalledWith({
-                success: true,
-                data: mockCredential,
-            });
-            expect(mockCredential).not.toHaveProperty('apiToken');
-            expect(mockCredential.hasApiToken).toBe(true);
+            const jsonArg = res.json.mock.calls[0][0];
+            expect(jsonArg.success).toBe(true);
+            expect(jsonArg.data).toEqual(mockCredential);
+            expect(jsonArg.data.hasApiToken).toBe(true);
+            expect(jsonArg.data).not.toHaveProperty('apiToken');
         });
 
         it('should call next on service error', async () => {

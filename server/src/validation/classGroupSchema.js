@@ -15,4 +15,12 @@ export const updateClassGroupSchema = yup.object({
     endDate: yup
         .date()
         .min(yup.ref('startDate'), 'End date must be after start date'),
-});
+}).test(
+    'dates-together',
+    'Both startDate and endDate must be provided together',
+    (value) => {
+        const hasStart = value.startDate != null;
+        const hasEnd = value.endDate != null;
+        return hasStart === hasEnd;
+    },
+);

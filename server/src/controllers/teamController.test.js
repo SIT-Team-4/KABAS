@@ -6,7 +6,7 @@ vi.mock('../services/teamService.js');
 
 describe('teamController', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        vi.resetAllMocks();
     });
 
     const mockTeam = { id: 1, name: 'Team Alpha', classGroupId: null };
@@ -80,6 +80,58 @@ describe('teamController', () => {
                 success: true,
                 data: mockTeam,
             });
+        });
+    });
+
+    describe('update', () => {
+        it('should update a team and return it', async () => {
+            const updated = { ...mockTeam, name: 'Updated' };
+            vi.mocked(teamService.updateTeam).mockResolvedValue(updated);
+
+            const req = {
+                params: { teamId: '1' },
+                body: { name: 'Updated' },
+            };
+            const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
+
+            await teamController.update(req, res, vi.fn());
+
+            expect(teamService.updateTeam).toHaveBeenCalledWith('1', {
+                name: 'Updated',
+            });
+            expect(res.json).toHaveBeenCalledWith({
+                success: true,
+                data: updated,
+            });
+        });
+
+        it('should return 400 on validation error', async () => {
+            const req = {
+                params: { teamId: '1' },
+                body: { name: '' },
+            };
+            const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
+
+            await teamController.update(req, res, vi.fn());
+
+            expect(res.status).toHaveBeenCalledWith(400);
+        });
+
+        it('should call next on service error', async () => {
+            vi.mocked(teamService.updateTeam).mockRejectedValue(
+                new Error('Team not found'),
+            );
+
+            const req = {
+                params: { teamId: '999' },
+                body: { name: 'Updated' },
+            };
+            const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
+            const next = vi.fn();
+
+            await teamController.update(req, res, next);
+
+            expect(next).toHaveBeenCalledWith(expect.any(Error));
         });
     });
 

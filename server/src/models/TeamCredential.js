@@ -22,8 +22,20 @@ const TeamCredential = sequelize.define('TeamCredential', {
         allowNull: true,
     },
     email: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true,
+        get() {
+            const raw = this.getDataValue('email');
+            if (!raw) return null;
+            return decrypt(raw);
+        },
+        set(value) {
+            if (value == null) {
+                this.setDataValue('email', null);
+                return;
+            }
+            this.setDataValue('email', encrypt(value));
+        },
     },
     apiToken: {
         type: DataTypes.TEXT,
@@ -34,6 +46,10 @@ const TeamCredential = sequelize.define('TeamCredential', {
             return decrypt(raw);
         },
         set(value) {
+            if (value == null) {
+                this.setDataValue('apiToken', null);
+                return;
+            }
             this.setDataValue('apiToken', encrypt(value));
         },
     },

@@ -1,7 +1,7 @@
 import { Team, ClassGroup } from '../models/index.js';
 
 export async function createTeam(data) {
-    if (data.classGroupId) {
+    if (data.classGroupId != null) {
         const classGroup = await ClassGroup.findByPk(data.classGroupId);
         if (!classGroup) {
             const error = new Error('Class group not found');
@@ -43,7 +43,7 @@ export async function updateTeam(teamId, data) {
         error.status = 404;
         throw error;
     }
-    if (data.classGroupId) {
+    if (data.classGroupId != null) {
         const classGroup = await ClassGroup.findByPk(data.classGroupId);
         if (!classGroup) {
             const error = new Error('Class group not found');

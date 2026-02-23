@@ -15,7 +15,7 @@ vi.mock('../models/index.js', () => ({
 
 describe('teamService', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        vi.resetAllMocks();
     });
 
     const mockTeam = {
@@ -56,12 +56,11 @@ describe('teamService', () => {
         it('should throw 404 if classGroupId does not exist', async () => {
             vi.mocked(ClassGroup.findByPk).mockResolvedValue(null);
 
-            await expect(
-                teamService.createTeam({
-                    name: 'Team Alpha',
-                    classGroupId: 999,
-                }),
-            ).rejects.toThrow('Class group not found');
+            const error = await teamService
+                .createTeam({ name: 'Team Alpha', classGroupId: 999 })
+                .catch((e) => e);
+            expect(error.message).toBe('Class group not found');
+            expect(error.status).toBe(404);
         });
     });
 
@@ -106,9 +105,9 @@ describe('teamService', () => {
         it('should throw 404 if team not found', async () => {
             vi.mocked(Team.findByPk).mockResolvedValue(null);
 
-            await expect(teamService.getTeamById(999)).rejects.toThrow(
-                'Team not found',
-            );
+            const error = await teamService.getTeamById(999).catch((e) => e);
+            expect(error.message).toBe('Team not found');
+            expect(error.status).toBe(404);
         });
     });
 
@@ -129,9 +128,11 @@ describe('teamService', () => {
         it('should throw 404 if team not found', async () => {
             vi.mocked(Team.findByPk).mockResolvedValue(null);
 
-            await expect(
-                teamService.updateTeam(999, { name: 'X' }),
-            ).rejects.toThrow('Team not found');
+            const error = await teamService
+                .updateTeam(999, { name: 'X' })
+                .catch((e) => e);
+            expect(error.message).toBe('Team not found');
+            expect(error.status).toBe(404);
         });
 
         it('should throw 404 if classGroupId does not exist on update', async () => {
@@ -141,9 +142,11 @@ describe('teamService', () => {
             });
             vi.mocked(ClassGroup.findByPk).mockResolvedValue(null);
 
-            await expect(
-                teamService.updateTeam(1, { classGroupId: 999 }),
-            ).rejects.toThrow('Class group not found');
+            const error = await teamService
+                .updateTeam(1, { classGroupId: 999 })
+                .catch((e) => e);
+            expect(error.message).toBe('Class group not found');
+            expect(error.status).toBe(404);
         });
     });
 
@@ -159,9 +162,9 @@ describe('teamService', () => {
         it('should throw 404 if team not found', async () => {
             vi.mocked(Team.findByPk).mockResolvedValue(null);
 
-            await expect(teamService.deleteTeam(999)).rejects.toThrow(
-                'Team not found',
-            );
+            const error = await teamService.deleteTeam(999).catch((e) => e);
+            expect(error.message).toBe('Team not found');
+            expect(error.status).toBe(404);
         });
     });
 });

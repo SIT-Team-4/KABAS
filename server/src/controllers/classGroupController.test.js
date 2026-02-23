@@ -6,7 +6,7 @@ vi.mock('../services/classGroupService.js');
 
 describe('classGroupController', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        vi.resetAllMocks();
     });
 
     const mockClassGroup = {
@@ -98,6 +98,60 @@ describe('classGroupController', () => {
             const next = vi.fn();
 
             await classGroupController.getById(req, res, next);
+
+            expect(next).toHaveBeenCalledWith(expect.any(Error));
+        });
+    });
+
+    describe('update', () => {
+        it('should update a class group and return it', async () => {
+            const updated = { ...mockClassGroup, name: 'Updated Name' };
+            vi.mocked(classGroupService.updateClassGroup).mockResolvedValue(
+                updated,
+            );
+
+            const req = {
+                params: { id: '1' },
+                body: { name: 'Updated Name' },
+            };
+            const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
+
+            await classGroupController.update(req, res, vi.fn());
+
+            expect(res.json).toHaveBeenCalledWith({
+                success: true,
+                data: updated,
+            });
+        });
+
+        it('should return 400 on validation error', async () => {
+            const req = {
+                params: { id: '1' },
+                body: { startDate: '2026-01-13' },
+            };
+            const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
+
+            await classGroupController.update(req, res, vi.fn());
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({ success: false }),
+            );
+        });
+
+        it('should call next on service error', async () => {
+            vi.mocked(classGroupService.updateClassGroup).mockRejectedValue(
+                new Error('Class group not found'),
+            );
+
+            const req = {
+                params: { id: '999' },
+                body: { name: 'Updated' },
+            };
+            const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
+            const next = vi.fn();
+
+            await classGroupController.update(req, res, next);
 
             expect(next).toHaveBeenCalledWith(expect.any(Error));
         });

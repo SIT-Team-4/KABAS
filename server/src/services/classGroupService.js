@@ -4,8 +4,11 @@ export async function createClassGroup(data) {
     return ClassGroup.create(data);
 }
 
-export async function getAllClassGroups() {
-    return ClassGroup.findAll({ order: [['createdAt', 'DESC']] });
+export async function getAllClassGroups({ limit, offset } = {}) {
+    const options = { order: [['createdAt', 'DESC']] };
+    if (limit != null) options.limit = limit;
+    if (offset != null) options.offset = offset;
+    return ClassGroup.findAll(options);
 }
 
 export async function getClassGroupById(id) {

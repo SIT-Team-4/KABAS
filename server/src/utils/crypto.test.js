@@ -7,6 +7,7 @@ describe('crypto utils', () => {
     let decrypt;
 
     beforeEach(async () => {
+        vi.resetModules();
         vi.stubEnv('ENCRYPTION_KEY', VALID_KEY);
         // Re-import to pick up env change
         const mod = await import('./crypto.js');
@@ -22,7 +23,8 @@ describe('crypto utils', () => {
         const plaintext = 'my-secret-api-token';
         const encrypted = encrypt(plaintext);
         expect(encrypted).not.toBe(plaintext);
-        expect(encrypted).toContain(':');
+        // GCM format: iv:tag:ciphertext
+        expect(encrypted.split(':')).toHaveLength(3);
         expect(decrypt(encrypted)).toBe(plaintext);
     });
 
@@ -54,5 +56,29 @@ describe('crypto utils', () => {
     it('should throw if ENCRYPTION_KEY is wrong length', () => {
         vi.stubEnv('ENCRYPTION_KEY', 'tooshort');
         expect(() => encrypt('test')).toThrow('64-character');
+    });
+
+    it('should throw if ENCRYPTION_KEY contains non-hex characters', async () => {
+        vi.resetModules();
+        vi.stubEnv(
+            'ENCRYPTION_KEY',
+            'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz',
+        );
+        const mod = await import('./crypto.js');
+        expect(() => mod.encrypt('test')).toThrow('64-character hex string');
+    });
+
+    it('should return null for null input to decrypt', () => {
+        expect(decrypt(null)).toBeNull();
+    });
+
+    it('should return null for non-string input to decrypt', () => {
+        expect(decrypt(undefined)).toBeNull();
+        expect(decrypt(123)).toBeNull();
+    });
+
+    it('should return null for invalid format input to decrypt', () => {
+        expect(decrypt('not-valid-format')).toBeNull();
+        expect(decrypt('only:two')).toBeNull();
     });
 });

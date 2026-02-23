@@ -5,8 +5,24 @@ export const createTeamCredentialSchema = yup.object({
         .string()
         .oneOf(['jira', 'github'], 'Provider must be jira or github')
         .required('Provider is required'),
-    baseUrl: yup.string().trim().nullable().default(null),
-    email: yup.string().trim().nullable().default(null),
+    baseUrl: yup
+        .string()
+        .trim()
+        .url('baseUrl must be a valid URL')
+        .when('provider', {
+            is: 'jira',
+            then: (schema) => schema.required('baseUrl is required for Jira'),
+            otherwise: (schema) => schema.nullable().default(null),
+        }),
+    email: yup
+        .string()
+        .trim()
+        .email('email must be a valid email')
+        .when('provider', {
+            is: 'jira',
+            then: (schema) => schema.required('email is required for Jira'),
+            otherwise: (schema) => schema.nullable().default(null),
+        }),
     apiToken: yup.string().required('API token is required'),
 });
 
@@ -14,7 +30,7 @@ export const updateTeamCredentialSchema = yup.object({
     provider: yup
         .string()
         .oneOf(['jira', 'github'], 'Provider must be jira or github'),
-    baseUrl: yup.string().trim().nullable(),
-    email: yup.string().trim().nullable(),
+    baseUrl: yup.string().trim().url('baseUrl must be a valid URL').nullable(),
+    email: yup.string().trim().email('email must be a valid email').nullable(),
     apiToken: yup.string(),
 });

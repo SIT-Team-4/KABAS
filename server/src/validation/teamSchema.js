@@ -6,6 +6,6 @@ export const createTeamSchema = yup.object({
 });
 
 export const updateTeamSchema = yup.object({
-    name: yup.string().trim(),
+    name: yup.string().trim().min(1, 'Name cannot be empty'),
     classGroupId: yup.number().integer().nullable(),
 });

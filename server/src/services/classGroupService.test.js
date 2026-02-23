@@ -13,7 +13,7 @@ vi.mock('../models/index.js', () => ({
 
 describe('classGroupService', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        vi.resetAllMocks();
     });
 
     const mockClassGroup = {
@@ -52,6 +52,21 @@ describe('classGroupService', () => {
             });
             expect(result).toHaveLength(1);
         });
+
+        it('should pass limit and offset when provided', async () => {
+            vi.mocked(ClassGroup.findAll).mockResolvedValue([mockClassGroup]);
+
+            await classGroupService.getAllClassGroups({
+                limit: 10,
+                offset: 20,
+            });
+
+            expect(ClassGroup.findAll).toHaveBeenCalledWith({
+                order: [['createdAt', 'DESC']],
+                limit: 10,
+                offset: 20,
+            });
+        });
     });
 
     describe('getClassGroupById', () => {
@@ -69,9 +84,11 @@ describe('classGroupService', () => {
         it('should throw 404 if class group not found', async () => {
             vi.mocked(ClassGroup.findByPk).mockResolvedValue(null);
 
-            await expect(
-                classGroupService.getClassGroupById(999),
-            ).rejects.toThrow('Class group not found');
+            const error = await classGroupService
+                .getClassGroupById(999)
+                .catch((e) => e);
+            expect(error.message).toBe('Class group not found');
+            expect(error.status).toBe(404);
         });
     });
 
@@ -94,9 +111,11 @@ describe('classGroupService', () => {
         it('should throw 404 if class group not found', async () => {
             vi.mocked(ClassGroup.findByPk).mockResolvedValue(null);
 
-            await expect(
-                classGroupService.updateClassGroup(999, { name: 'X' }),
-            ).rejects.toThrow('Class group not found');
+            const error = await classGroupService
+                .updateClassGroup(999, { name: 'X' })
+                .catch((e) => e);
+            expect(error.message).toBe('Class group not found');
+            expect(error.status).toBe(404);
         });
     });
 
@@ -112,9 +131,11 @@ describe('classGroupService', () => {
         it('should throw 404 if class group not found', async () => {
             vi.mocked(ClassGroup.findByPk).mockResolvedValue(null);
 
-            await expect(
-                classGroupService.deleteClassGroup(999),
-            ).rejects.toThrow('Class group not found');
+            const error = await classGroupService
+                .deleteClassGroup(999)
+                .catch((e) => e);
+            expect(error.message).toBe('Class group not found');
+            expect(error.status).toBe(404);
         });
     });
 });
