@@ -1,3 +1,7 @@
+/**
+ * @module config/app
+ * @description Express application setup with middleware and route mounting.
+ */
 import express from 'express';
 import cors from 'cors';
 import routes from '../routes/index.js';

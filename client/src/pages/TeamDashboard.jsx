@@ -438,6 +438,9 @@ export default function TeamDashboard() {
     return <Navigate to={`/teams/${DEFAULT_TEAM_ID}`} replace />;
   }
 
+  const displayStatusLabel =
+    (popupStatus && rawMetaByBucket[popupStatus]?.rawLabel) || meta?.label || "";
+
   return (
     <Box sx={{ maxWidth: 2000, mx: "auto", pt: 1, pb: 6 }}>
       {/* Header */}
@@ -855,8 +858,12 @@ export default function TeamDashboard() {
                         fontWeight: 900,
                         borderRadius: 1.5,
                       }}
-                    />
-                  </TableCell>
+                    >
+                      Initials
+                    </Avatar>
+                    <Typography sx={{ fontWeight: 700 }}>Placeholder</Typography>
+                  </Box>
+                </TableCell>
 
                   <TableCell align="center">
                     <Chip

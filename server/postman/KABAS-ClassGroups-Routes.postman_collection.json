@@ -1,0 +1,169 @@
+{
+  "info": {
+    "name": "KABAS - Class Groups Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api"
+    },
+    {
+      "key": "adminApiKey",
+      "value": "<your-admin-api-key>"
+    },
+    {
+      "key": "classGroupId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Class Group",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{adminApiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"ICT2505C AY25/26 T2\",\n  \"startDate\": \"2026-01-13\",\n  \"endDate\": \"2026-04-25\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/class-groups",
+          "host": ["{{baseUrl}}"],
+          "path": ["class-groups"]
+        }
+      }
+    },
+    {
+      "name": "List All Class Groups",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{adminApiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/class-groups",
+          "host": ["{{baseUrl}}"],
+          "path": ["class-groups"]
+        }
+      }
+    },
+    {
+      "name": "Get Class Group by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{adminApiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/class-groups/{{classGroupId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["class-groups", "{{classGroupId}}"]
+        }
+      }
+    },
+    {
+      "name": "Update Class Group",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{adminApiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"ICT2505C AY25/26 T2 (Updated)\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/class-groups/{{classGroupId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["class-groups", "{{classGroupId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Class Group",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{adminApiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/class-groups/{{classGroupId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["class-groups", "{{classGroupId}}"]
+        }
+      }
+    },
+    {
+      "name": "Create Class Group - No Auth (401)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test\",\n  \"startDate\": \"2026-01-13\",\n  \"endDate\": \"2026-04-25\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/class-groups",
+          "host": ["{{baseUrl}}"],
+          "path": ["class-groups"]
+        }
+      }
+    },
+    {
+      "name": "Create Class Group - Missing Fields (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{adminApiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Missing dates\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/class-groups",
+          "host": ["{{baseUrl}}"],
+          "path": ["class-groups"]
+        }
+      }
+    }
+  ]
+}

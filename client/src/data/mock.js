@@ -5,6 +5,23 @@ export const STATUS_BUCKETS = {
   backlog: "backlog",
 };
 
+export const members = [
+  { id: "u1", name: "Alice Chen", initials: "AC" },
+  { id: "u2", name: "Bob Smith", initials: "BS" },
+  { id: "u3", name: "Carol Wang", initials: "CW" },
+  { id: "u4", name: "David Lee", initials: "DL" },
+];
+
+// We standardize buckets for the dashboard cards.
+// Backend can later normalize Jira/GitHub statuses into these buckets.
+export const STATUS_BUCKETS = {
+  todo: "todo",
+  in_progress: "in_progress",
+  completed: "completed",
+  backlog: "backlog",
+};
+
+// Card definitions (colors match your UI styling)
 export const statusCards = [
   { key: STATUS_BUCKETS.todo, label: "To-Do", color: "#7C3AED", tint: "#F3E8FF" },
   { key: STATUS_BUCKETS.in_progress, label: "In Progress", color: "#2563EB", tint: "#E0EAFF" },

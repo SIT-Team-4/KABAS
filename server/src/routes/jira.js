@@ -1,3 +1,7 @@
+/**
+ * @module routes/jira
+ * @description Jira API routes for configuration and issue management.
+ */
 import express from 'express';
 import * as jiraController from '../controllers/jiraController.js';
 import * as jiraConfigController from '../controllers/jiraConfigController.js';
