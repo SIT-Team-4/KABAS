@@ -8,7 +8,6 @@ import {
   Checkbox,
   FormControlLabel,
   Divider,
-  IconButton,
 } from "@mui/material";
 
 import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
@@ -16,7 +15,6 @@ import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import AccountTreeRoundedIcon from "@mui/icons-material/AccountTreeRounded";
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomizeRounded";
-import GitHubIcon from "@mui/icons-material/GitHub";
 
 export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
@@ -310,60 +308,6 @@ export default function LoginPage() {
                   Or continue with
                 </Typography>
                 <Divider sx={{ flex: 1 }} />
-              </Box>
-
-              <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<GitHubIcon />}
-                  sx={{
-                    borderRadius: 2,
-                    py: 1.1,
-                    color: "#0F172A",
-                    borderColor: "rgba(15,23,42,0.12)",
-                    textTransform: "none",
-                    fontFamily: "JetBrains Mono, monospace",
-                    fontWeight: 700,
-                    "&:hover": {
-                      borderColor: "rgba(15,23,42,0.22)",
-                      bgcolor: "rgba(15,23,42,0.02)",
-                    },
-                  }}
-                >
-                  GitHub
-                </Button>
-
-                <Button
-                  variant="outlined"
-                  sx={{
-                    borderRadius: 2,
-                    py: 1.1,
-                    color: "#0F172A",
-                    borderColor: "rgba(15,23,42,0.12)",
-                    textTransform: "none",
-                    fontFamily: "JetBrains Mono, monospace",
-                    fontWeight: 700,
-                    "&:hover": {
-                      borderColor: "rgba(15,23,42,0.22)",
-                      bgcolor: "rgba(15,23,42,0.02)",
-                    },
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Box
-                      component="span"
-                      sx={{
-                        fontWeight: 900,
-                        fontSize: 18,
-                        lineHeight: 1,
-                        color: "#4285F4",
-                      }}
-                    >
-                      G
-                    </Box>
-                    <Box component="span">Google</Box>
-                  </Box>
-                </Button>
               </Box>
 
               <Typography
