@@ -197,27 +197,38 @@ export default function TeamDashboard() {
   const totalTasks = tasks.length;
   const counts = getCountsByBucket(tasks);
 
-  const byStatus = {};
-  for (const s of statusCards) {
-    byStatus[s.key] = tasks.filter((t) => t.bucket === s.key);
-  }
+  const byStatus = useMemo(() => {
+    const map = {};
+    for (const s of statusCards) {
+      map[s.key] = tasks.filter((t) => t.bucket === s.key);
+    }
+    return map;
+  }, [tasks]);
 
-  const rawMetaByBucket = {};
-  for (const s of statusCards) {
-    const list = byStatus[s.key] || [];
-    const firstRaw = list.find((t) => t.rawStatus)?.rawStatus;
-    rawMetaByBucket[s.key] = {
-      rawLabel: firstRaw || s.label,
-    };
-  }
+  const rawMetaByBucket = useMemo(() => {
+    const map = {};
+    for (const s of statusCards) {
+      const list = byStatus[s.key] || [];
+      const firstRaw = list.find((t) => t.rawStatus)?.rawStatus;
+      map[s.key] = {
+        rawLabel: firstRaw || s.label,
+      };
+    }
+    return map;
+  }, [byStatus]);
 
   const meta = statusCards.find((s) => s.key === popupStatus);
   const list = popupStatus ? byStatus[popupStatus] : [];
   const displayStatusLabel =
     (popupStatus && rawMetaByBucket[popupStatus]?.rawLabel) || meta?.label || "";
 
-  const cardByKey = {};
-  for (const s of statusCards) cardByKey[s.key] = s;
+  const cardByKey = useMemo(() => {
+    const map = {};
+    for (const s of statusCards) {
+      map[s.key] = s;
+    }
+    return map;
+  }, []);
 
   const keyCompleted = statusCards.find((s) => /completed/i.test(s.label))?.key;
   const keyInProgress = statusCards.find((s) => /progress/i.test(s.label))?.key;
@@ -252,7 +263,7 @@ export default function TeamDashboard() {
       "Tasks";
 
     return `${memberName} - ${statusLabel} Tasks (${memberPopupTasks.length})`;
-  }, [memberPopup, memberPopupTasks]);
+  }, [memberPopup, memberPopupTasks, cardByKey, rawMetaByBucket]);
 
   const statusAgeDays = (t) =>
     diffDays(t.statusChangedAt || t.lastMovedAt || t.updatedAt || t.createdAt);
@@ -285,7 +296,7 @@ export default function TeamDashboard() {
         color: s.color,
       };
     });
-  }, [counts, totalTasks]);
+  }, [counts, totalTasks, rawMetaByBucket]);
 
   const longestOpen = useMemo(() => {
     const open = tasks.filter((t) =>
