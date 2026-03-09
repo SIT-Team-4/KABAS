@@ -6,15 +6,42 @@ import TeamDashboard from "./pages/TeamDashboard";
 import AllTeams from "./pages/AllTeams";
 import TeamCredentials from "./pages/TeamCredentials";
 
+function ShellLayout({ children }) {
+  return <AppShell>{children}</AppShell>;
+}
+
 export default function App() {
   return (
-    <AppShell>
-      <Routes>
-        <Route path="/" element={<TeamDashboard />} />
-        <Route path="/all-teams" element={<AllTeams />} />
-        <Route path="/team-credentials" element={<TeamCredentials />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AppShell>
+    <Routes>
+      <Route
+        path="/teams/:teamId"
+        element={
+          <ShellLayout>
+            <TeamDashboard />
+          </ShellLayout>
+        }
+      />
+
+      <Route
+        path="/all-teams"
+        element={
+          <ShellLayout>
+            <AllTeams />
+          </ShellLayout>
+        }
+      />
+
+      <Route
+        path="/team-credentials"
+        element={
+          <ShellLayout>
+            <TeamCredentials />
+          </ShellLayout>
+        }
+      />
+
+      <Route path="/" element={<Navigate to="/teams/team-alpha" replace />} />
+      <Route path="*" element={<Navigate to="/teams/team-alpha" replace />} />
+    </Routes>
   );
 }
