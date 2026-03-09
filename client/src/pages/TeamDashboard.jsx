@@ -246,13 +246,13 @@ export default function TeamDashboard() {
     if (!memberPopup) return "";
     const { memberName, bucketKey } = memberPopup;
 
-    const statusLabel =
+  const statusLabel =
       rawMetaByBucket[bucketKey]?.rawLabel ||
       cardByKey[bucketKey]?.label ||
       "Tasks";
 
     return `${memberName} - ${statusLabel} Tasks (${memberPopupTasks.length})`;
-  }, [memberPopup, memberPopupTasks]);
+  }, [memberPopup, memberPopupTasks, cardByKey, rawMetaByBucket]);
 
   const statusAgeDays = (t) =>
     diffDays(t.statusChangedAt || t.lastMovedAt || t.updatedAt || t.createdAt);
