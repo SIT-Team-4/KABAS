@@ -17,7 +17,7 @@ import SwapVertRoundedIcon from "@mui/icons-material/SwapVertRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 
 // IMPORTANT: adjust path if yours is different
-import { statusCards, STATUS_BUCKETS } from "../data/mock";
+import { statusCards } from "../data/mock";
 
 // ---------- helpers ----------
 const initials = (name = "") => {
