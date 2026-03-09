@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,11 +16,16 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import TagRoundedIcon from "@mui/icons-material/TagRounded";
 
+// ✅ adjust path if your folder differs
+import { statusCards } from "../data/mock";
+
+// ---------- helpers ----------
 function calculateDurationInDays(createdAt) {
   if (!createdAt) return "-";
   const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return "-";
   const now = new Date();
-  const diffMs = now - created;
+  const diffMs = now.getTime() - created.getTime();
   const diffDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
   return `${diffDays} day${diffDays !== 1 ? "s" : ""}`;
 }
@@ -39,8 +44,66 @@ function formatDateTime(value) {
   });
 }
 
+const priorityMeta = (pRaw) => {
+  const p = String(pRaw || "").toLowerCase();
+
+  if (p.includes("high")) {
+    return {
+      label: "high Priority",
+      fg: "#B42318",
+      bg: "rgba(240,68,56,0.12)",
+      dot: "#F04438",
+    };
+  }
+  if (p.includes("med")) {
+    return {
+      label: "medium Priority",
+      fg: "#B54708",
+      bg: "rgba(247,144,9,0.12)",
+      dot: "#F79009",
+    };
+  }
+  if (p.includes("low")) {
+    return {
+      label: "low Priority",
+      fg: "#175CD3",
+      bg: "rgba(46,144,250,0.12)",
+      dot: "#2E90FA",
+    };
+  }
+
+  return {
+    label: pRaw ? `${pRaw} Priority` : "Priority —",
+    fg: "rgba(16,24,40,0.6)",
+    bg: "rgba(16,24,40,0.06)",
+    dot: "rgba(16,24,40,0.25)",
+  };
+};
+
+const bucketToColors = () => {
+  const map = {};
+  for (const c of statusCards || []) {
+    map[c.key] = { fg: c.color, bg: c.tint };
+  }
+  return map;
+};
+
 export default function TaskDetailsModal({ open, onClose, task }) {
+  const bucketColors = useMemo(() => bucketToColors(), []);
+
   if (!task) return null;
+
+  const pr = priorityMeta(task.priority);
+
+  // show rawStatus if you have it (In QA, Published, etc.) — matches your screenshot
+  const statusText = String(task.rawStatus || task.status || task.bucket || "—").toUpperCase();
+
+  // color status by bucket (todo/in_progress/completed/backlog)
+  const statusPalette =
+    (task.bucket && bucketColors[task.bucket]) || {
+      fg: "rgba(16,24,40,0.65)",
+      bg: "rgba(16,24,40,0.06)",
+    };
 
   return (
     <Dialog
@@ -89,25 +152,40 @@ export default function TaskDetailsModal({ open, onClose, task }) {
           </Typography>
 
           <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
+            {/* ✅ Priority chip (NOW changes color by priority) */}
             <Chip
               size="small"
-              label={`${task.priority ?? "medium"} Priority`}
+              label={pr.label}
               sx={{
-                bgcolor: "#FEF0C7",
-                color: "#B54708",
-                fontWeight: 700,
+                bgcolor: pr.bg,
+                color: pr.fg,
+                fontWeight: 800,
                 borderRadius: 2,
+                fontFamily: "JetBrains Mono, monospace",
               }}
+              icon={
+                <Box
+                  sx={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "999px",
+                    bgcolor: pr.dot,
+                    ml: 1,
+                  }}
+                />
+              }
             />
 
+            {/* ✅ Status chip (colored by bucket) */}
             <Chip
               size="small"
-              label={(task.status ?? task.rawStatus ?? "IN PROGRESS").toUpperCase()}
+              label={statusText}
               sx={{
-                bgcolor: "#E0EAFF",
-                color: "#175CD3",
-                fontWeight: 700,
+                bgcolor: statusPalette.bg,
+                color: statusPalette.fg,
+                fontWeight: 800,
                 borderRadius: 2,
+                fontFamily: "JetBrains Mono, monospace",
               }}
             />
           </Box>
@@ -141,6 +219,14 @@ export default function TaskDetailsModal({ open, onClose, task }) {
               icon={<CalendarMonthRoundedIcon fontSize="small" />}
               label="Started At"
               value={formatDateTime(task.startedAt)}
+            />
+          ) : null}
+
+          {task.completedAt ? (
+            <InfoRow
+              icon={<CalendarMonthRoundedIcon fontSize="small" />}
+              label="Completed At"
+              value={formatDateTime(task.completedAt)}
             />
           ) : null}
 
@@ -187,7 +273,7 @@ function InfoRow({ icon, label, value, avatar }) {
         gap: 1.5,
       }}
     >
-      {/* Icon block (like your prototype) */}
+      {/* Icon block */}
       <Box
         sx={{
           width: 36,
@@ -204,9 +290,7 @@ function InfoRow({ icon, label, value, avatar }) {
       </Box>
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: 12, opacity: 0.6 }}>
-          {label}
-        </Typography>
+        <Typography sx={{ fontSize: 12, opacity: 0.6 }}>{label}</Typography>
         <Typography
           sx={{
             fontFamily: "JetBrains Mono, monospace",
@@ -221,7 +305,6 @@ function InfoRow({ icon, label, value, avatar }) {
         </Typography>
       </Box>
 
-      {/* Optional initials bubble for owner row */}
       {avatar ? (
         <Box
           sx={{
