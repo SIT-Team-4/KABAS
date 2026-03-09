@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import AppShell from "./components/AppShell";
+import LoginPage from "./pages/LoginPage";
 import TeamDashboard from "./pages/TeamDashboard";
 import AllTeams from "./pages/AllTeams";
 import TeamCredentials from "./pages/TeamCredentials";
@@ -13,6 +14,7 @@ function ShellLayout({ children }) {
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<LoginPage />} />
       <Route
         path="/teams/:teamId"
         element={
