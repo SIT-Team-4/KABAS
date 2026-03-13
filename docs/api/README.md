@@ -2,7 +2,7 @@
 
 Base URL: `http://localhost:3001/api`
 
-All protected endpoints require the `x-api-key` header. GitHub endpoints require `x-github-token` instead.
+All protected endpoints require the `x-api-key` header. The only exception is `/api/github/*` routes, which require `x-github-token` instead.
 
 ---
 

@@ -90,6 +90,29 @@ export const getJiraClient = () => {
 };
 
 /**
+ * Create a standalone Jira API client from explicit credentials.
+ * Does NOT mutate global config or cached client. Safe for concurrent use.
+ * @param {Object} config - { baseUrl, email, apiToken }
+ * @returns {AxiosInstance} Configured axios client
+ */
+export const createJiraClient = (config) => {
+    const { baseUrl, email, apiToken } = config;
+
+    if (!baseUrl || !email || !apiToken) {
+        throw new Error('Missing required Jira credentials: baseUrl, email, and apiToken');
+    }
+
+    return axios.create({
+        baseURL: baseUrl,
+        timeout: 10000,
+        auth: {
+            username: email,
+            password: apiToken,
+        },
+    });
+};
+
+/**
  * Validate Jira configuration by testing the connection
  * @returns {Promise<boolean>} True if connection successful
  * @throws {Error} If validation fails
