@@ -14,10 +14,13 @@ import {
     computeStatusLeaders,
     computeCompletionStats,
     computeEfficiency,
+    computeTeamSummary,
+    computeCohortAggregate,
+    getAllTeamsAnalytics,
 } from './analyticsService.js';
 
 vi.mock('../models/index.js', () => ({
-    Team: { findByPk: vi.fn() },
+    Team: { findByPk: vi.fn(), findAll: vi.fn() },
     Task: {
         findOne: vi.fn(), findAll: vi.fn(), bulkCreate: vi.fn(), destroy: vi.fn(),
     },
@@ -711,5 +714,220 @@ describe('computeEfficiency', () => {
 
     it('should return empty object for empty tasks array', () => {
         expect(computeEfficiency([], 30)).toEqual({});
+    });
+});
+
+// ─── Multi-team analytics (KBAS-16) ────────────────────────────────
+
+describe('computeTeamSummary', () => {
+    it('should compute correct counts, memberCount, avgCompletionDays, and avgEfficiency', () => {
+        const team = {
+            id: 1,
+            name: 'Team A',
+            ClassGroup: {
+                id: 10, name: 'CG1', startDate: '2026-01-01', endDate: '2026-03-01',
+            },
+            TeamCredential: { provider: 'jira' },
+        };
+        const tasks = [
+            {
+                owner: 'Alice', bucket: 'completed', createdAt: '2026-01-10', completedAt: '2026-01-15', fetchedAt: '2026-03-14',
+            },
+            {
+                owner: 'Bob', bucket: 'todo', createdAt: '2026-01-12', completedAt: null, fetchedAt: '2026-03-14',
+            },
+            {
+                owner: 'Alice', bucket: 'in_progress', createdAt: '2026-01-14', completedAt: null, fetchedAt: '2026-03-13',
+            },
+            {
+                owner: 'Unassigned', bucket: 'backlog', createdAt: '2026-01-15', completedAt: null, fetchedAt: '2026-03-12',
+            },
+        ];
+
+        const result = computeTeamSummary(team, tasks);
+
+        expect(result.teamId).toBe(1);
+        expect(result.teamName).toBe('Team A');
+        expect(result.classGroupId).toBe(10);
+        expect(result.classGroupName).toBe('CG1');
+        expect(result.source).toBe('jira');
+        expect(result.totalTasks).toBe(4);
+        expect(result.todoCount).toBe(1);
+        expect(result.inProgressCount).toBe(1);
+        expect(result.completedCount).toBe(1);
+        expect(result.backlogCount).toBe(1);
+        expect(result.memberCount).toBe(2); // Alice, Bob (not Unassigned)
+        expect(result.avgCompletionDays).toBe(5); // Alice: 5 days avg
+        expect(result.avgEfficiency).toBeTypeOf('number');
+        expect(result.lastFetchedAt).toBe(new Date('2026-03-14').toISOString());
+    });
+
+    it('should return all zeros/nulls for team with no tasks', () => {
+        const team = {
+            id: 2,
+            name: 'Team B',
+            ClassGroup: { id: 10, name: 'CG1', startDate: '2026-01-01', endDate: '2026-03-01' },
+            TeamCredential: { provider: 'github' },
+        };
+
+        const result = computeTeamSummary(team, []);
+
+        expect(result.totalTasks).toBe(0);
+        expect(result.todoCount).toBe(0);
+        expect(result.inProgressCount).toBe(0);
+        expect(result.completedCount).toBe(0);
+        expect(result.backlogCount).toBe(0);
+        expect(result.memberCount).toBe(0);
+        expect(result.avgCompletionDays).toBeNull();
+        expect(result.avgEfficiency).toBeNull();
+        expect(result.lastFetchedAt).toBeNull();
+    });
+
+    it('should return null avgEfficiency when team has no ClassGroup', () => {
+        const team = {
+            id: 3,
+            name: 'Team C',
+            ClassGroup: null,
+            TeamCredential: { provider: 'jira' },
+        };
+        const tasks = [
+            {
+                owner: 'Alice', bucket: 'completed', createdAt: '2026-01-01', completedAt: '2026-01-06', fetchedAt: '2026-03-14',
+            },
+        ];
+
+        const result = computeTeamSummary(team, tasks);
+
+        expect(result.classGroupId).toBeNull();
+        expect(result.classGroupName).toBeNull();
+        expect(result.avgEfficiency).toBeNull();
+        expect(result.avgCompletionDays).toBe(5);
+    });
+});
+
+describe('computeCohortAggregate', () => {
+    it('should compute correct sums and weighted averages for multiple teams', () => {
+        const summaries = [
+            {
+                teamId: 1,
+                totalTasks: 10,
+                todoCount: 2,
+                inProgressCount: 3,
+                completedCount: 4,
+                backlogCount: 1,
+                avgCompletionDays: 5,
+                avgEfficiency: 10,
+            },
+            {
+                teamId: 2,
+                totalTasks: 6,
+                todoCount: 1,
+                inProgressCount: 1,
+                completedCount: 3,
+                backlogCount: 1,
+                avgCompletionDays: 3,
+                avgEfficiency: 8,
+            },
+        ];
+
+        const result = computeCohortAggregate(summaries);
+
+        expect(result.totalTeams).toBe(2);
+        expect(result.totalTasks).toBe(16);
+        expect(result.totalTodo).toBe(3);
+        expect(result.totalInProgress).toBe(4);
+        expect(result.totalCompleted).toBe(7);
+        expect(result.totalBacklog).toBe(2);
+        // Weighted avg completion: (5*4 + 3*3) / (4+3) = 29/7 ≈ 4.1
+        expect(result.avgCompletionDays).toBe(4.1);
+        // Weighted avg efficiency: (10*10 + 8*6) / (10+6) = 148/16 = 9.25 → 9.3
+        expect(result.avgEfficiency).toBe(9.3);
+    });
+
+    it('should return all zeros and null averages for empty array', () => {
+        const result = computeCohortAggregate([]);
+
+        expect(result.totalTeams).toBe(0);
+        expect(result.totalTasks).toBe(0);
+        expect(result.totalTodo).toBe(0);
+        expect(result.totalInProgress).toBe(0);
+        expect(result.totalCompleted).toBe(0);
+        expect(result.totalBacklog).toBe(0);
+        expect(result.avgCompletionDays).toBeNull();
+        expect(result.avgEfficiency).toBeNull();
+    });
+
+    it('should return null avgCompletionDays when no teams have completed tasks', () => {
+        const summaries = [
+            {
+                teamId: 1, totalTasks: 5, todoCount: 3, inProgressCount: 2, completedCount: 0, backlogCount: 0, avgCompletionDays: null, avgEfficiency: null,
+            },
+            {
+                teamId: 2, totalTasks: 3, todoCount: 1, inProgressCount: 2, completedCount: 0, backlogCount: 0, avgCompletionDays: null, avgEfficiency: null,
+            },
+        ];
+
+        const result = computeCohortAggregate(summaries);
+
+        expect(result.avgCompletionDays).toBeNull();
+        expect(result.avgEfficiency).toBeNull();
+    });
+});
+
+describe('getAllTeamsAnalytics', () => {
+    it('should return teams array and cohort for multiple teams with tasks', async () => {
+        vi.mocked(Team.findAll).mockResolvedValue([
+            {
+                id: 1, name: 'Team A', ClassGroup: { id: 1, name: 'CG1', startDate: '2026-01-01', endDate: '2026-03-01' }, TeamCredential: { provider: 'jira' },
+            },
+            {
+                id: 2, name: 'Team B', ClassGroup: { id: 1, name: 'CG1', startDate: '2026-01-01', endDate: '2026-03-01' }, TeamCredential: { provider: 'github' },
+            },
+        ]);
+        vi.mocked(Task.findAll).mockResolvedValue([
+            {
+                teamId: 1, bucket: 'completed', owner: 'Alice', createdAt: '2026-01-10', completedAt: '2026-01-15', fetchedAt: '2026-03-14',
+            },
+            {
+                teamId: 1, bucket: 'todo', owner: 'Bob', fetchedAt: '2026-03-14',
+            },
+            {
+                teamId: 2, bucket: 'in_progress', owner: 'Charlie', fetchedAt: '2026-03-14',
+            },
+        ]);
+
+        const result = await getAllTeamsAnalytics();
+
+        expect(result.teams).toHaveLength(2);
+        expect(result.teams[0].teamName).toBe('Team A');
+        expect(result.teams[0].totalTasks).toBe(2);
+        expect(result.teams[1].teamName).toBe('Team B');
+        expect(result.teams[1].totalTasks).toBe(1);
+        expect(result.cohort.totalTeams).toBe(2);
+        expect(result.cohort.totalTasks).toBe(3);
+    });
+
+    it('should pass classGroupId as where clause to Team.findAll', async () => {
+        vi.mocked(Team.findAll).mockResolvedValue([]);
+
+        await getAllTeamsAnalytics({ classGroupId: 42 });
+
+        expect(Team.findAll).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: { classGroupId: 42 },
+            }),
+        );
+    });
+
+    it('should return empty teams and zero cohort when no teams exist', async () => {
+        vi.mocked(Team.findAll).mockResolvedValue([]);
+
+        const result = await getAllTeamsAnalytics();
+
+        expect(result.teams).toEqual([]);
+        expect(result.cohort.totalTeams).toBe(0);
+        expect(result.cohort.totalTasks).toBe(0);
+        expect(result.cohort.avgCompletionDays).toBeNull();
+        expect(result.cohort.avgEfficiency).toBeNull();
     });
 });
