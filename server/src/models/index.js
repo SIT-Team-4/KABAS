@@ -7,6 +7,7 @@ import ClassGroup from './ClassGroup.js';
 import Team from './Team.js';
 import TeamCredential from './TeamCredential.js';
 import Task from './Task.js';
+import User from './User.js';
 
 // ClassGroup → Team (one-to-many)
 ClassGroup.hasMany(Team, { foreignKey: 'classGroupId', onDelete: 'SET NULL' });
@@ -26,4 +27,5 @@ export {
     Team,
     TeamCredential,
     Task,
+    User,
 };
