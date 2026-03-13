@@ -7,6 +7,7 @@ import githubRoutes from './github.js';
 import jiraRouter from './jira.js';
 import classGroupRoutes from './classGroups.js';
 import teamRoutes from './teams.js';
+import analyticsRoutes from './analytics.js';
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use('/github', githubRoutes);
 router.use('/jira', jiraRouter);
 router.use('/class-groups', classGroupRoutes);
 router.use('/teams', teamRoutes);
+router.use('/analytics', analyticsRoutes);
 
 export default router;
