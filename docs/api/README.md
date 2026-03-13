@@ -2,18 +2,91 @@
 
 Base URL: `http://localhost:3001/api`
 
-All protected endpoints require the `x-api-key` header. The only exception is `/api/github/*` routes, which require `x-github-token` instead.
+Protected endpoints accept either `Authorization: Bearer <JWT>` or `x-api-key` header. The only exception is `/api/github/*` routes, which require `x-github-token` instead.
 
 ---
 
 ## Authentication
 
-| Header | Description |
-|--------|-------------|
-| `x-api-key` | Admin API key (required for all protected endpoints) |
-| `x-github-token` | GitHub personal access token (required for GitHub endpoints) |
+Protected routes support two auth methods (checked in order):
+
+| Method | Header | Description |
+|--------|--------|-------------|
+| JWT Bearer | `Authorization: Bearer <token>` | User session token from `/api/auth/login` |
+| API Key | `x-api-key` | Admin/system API key |
+| GitHub Token | `x-github-token` | GitHub PAT (only for `/api/github/*` routes) |
 
 **401 response:** `{ "success": false, "error": "Unauthorized" }`
+
+---
+
+## Auth Endpoints
+
+### `POST /api/auth/register`
+
+Create a new instructor account. Public — no auth required.
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | yes | Display name |
+| `email` | string | yes | Email address (unique) |
+| `password` | string | yes | Password (min 8 characters) |
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": { "id": 1, "name": "Dr. Smith", "email": "smith@uni.edu", "role": "instructor" }
+}
+```
+
+**Errors:** 400 validation, 409 email already registered.
+
+---
+
+### `POST /api/auth/login`
+
+Authenticate and receive a JWT token. Public — no auth required.
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | yes | Email address |
+| `password` | string | yes | Password |
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "user": { "id": 1, "name": "Dr. Smith", "email": "smith@uni.edu", "role": "instructor" }
+  }
+}
+```
+
+**Errors:** 401 invalid credentials.
+
+---
+
+### `GET /api/auth/me`
+
+Get the current authenticated user.
+
+**Auth:** Bearer token or `x-api-key`
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": { "id": 1, "name": "Dr. Smith", "email": "smith@uni.edu", "role": "instructor" }
+}
+```
+
+**Note:** When using `x-api-key`, `req.user` is not set so this endpoint returns the API key context only via JWT.
 
 ---
 
