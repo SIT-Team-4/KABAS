@@ -132,8 +132,20 @@ describe('mapStatusToBucket', () => {
             expect(mapStatusToBucket('TODO')).toBe('todo');
         });
 
-        it('matches keyword as substring: "Task is done" → completed', () => {
+        it('matches keyword as whole word: "Task is done" → completed', () => {
             expect(mapStatusToBucket('Task is done')).toBe('completed');
+        });
+
+        it('does not false-positive: "abandoned" should NOT match "done"', () => {
+            expect(mapStatusToBucket('abandoned')).toBe('backlog');
+        });
+
+        it('does not false-positive: "reopened" should NOT match "open"', () => {
+            expect(mapStatusToBucket('reopened')).toBe('backlog');
+        });
+
+        it('does not false-positive: "unplanned" should NOT match "planned"', () => {
+            expect(mapStatusToBucket('unplanned')).toBe('backlog');
         });
     });
 });

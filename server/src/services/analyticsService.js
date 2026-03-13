@@ -6,7 +6,7 @@
 import {
     Team, ClassGroup, TeamCredential, Task,
 } from '../models/index.js';
-import * as jiraConfigGateway from '../gateways/jiraConfigGateway.js';
+import { createJiraClient } from '../gateways/jiraConfigGateway.js';
 import * as jiraService from './jiraService.js';
 import * as githubService from './githubService.js';
 import { mapStatusToBucket } from '../utils/statusMapper.js';
@@ -356,15 +356,25 @@ async function getTeamAnalytics(teamId) {
 
         if (credential.provider === 'jira') {
             const projectKey = parseJiraProjectKey(credential.baseUrl);
-            jiraConfigGateway.setConfig({
+            if (!projectKey) {
+                const parseErr = new Error('Invalid Jira baseUrl: could not extract project key');
+                parseErr.status = 400;
+                throw parseErr;
+            }
+            const jiraClient = createJiraClient({
                 baseUrl: credential.baseUrl,
                 email: credential.email,
                 apiToken: credential.apiToken,
             });
-            const issues = await jiraService.fetchProjectIssues(projectKey);
+            const issues = await jiraService.fetchProjectIssues(projectKey, { client: jiraClient });
             normalized = issues.map((i) => normalizeJiraIssue(i, teamId));
         } else if (credential.provider === 'github') {
             const parsed = parseGithubOwnerRepo(credential.baseUrl);
+            if (!parsed) {
+                const parseErr = new Error('Invalid GitHub baseUrl: could not extract owner/repo');
+                parseErr.status = 400;
+                throw parseErr;
+            }
             const { owner, repo } = parsed;
             const data = await githubService.getKanbanData(
                 credential.apiToken,
@@ -374,14 +384,11 @@ async function getTeamAnalytics(teamId) {
             normalized = data.issues.map((i) => normalizeGithubIssue(i, teamId));
         }
 
+        // Remove tasks that may have been deleted from the source
+        await Task.destroy({ where: { teamId, source: credential.provider } });
+
         if (normalized.length > 0) {
-            await Task.bulkCreate(normalized, {
-                updateOnDuplicate: [
-                    'title', 'owner', 'ownerInitials', 'priority', 'bucket',
-                    'rawStatus', 'createdAt', 'startedAt', 'completedAt',
-                    'updatedAt', 'fetchedAt',
-                ],
-            });
+            await Task.bulkCreate(normalized);
         }
     }
 

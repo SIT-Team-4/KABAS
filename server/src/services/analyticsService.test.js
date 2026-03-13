@@ -18,13 +18,15 @@ import {
 
 vi.mock('../models/index.js', () => ({
     Team: { findByPk: vi.fn() },
-    Task: { findOne: vi.fn(), findAll: vi.fn(), bulkCreate: vi.fn() },
+    Task: {
+        findOne: vi.fn(), findAll: vi.fn(), bulkCreate: vi.fn(), destroy: vi.fn(),
+    },
     ClassGroup: {},
     TeamCredential: {},
 }));
 
 vi.mock('../gateways/jiraConfigGateway.js', () => ({
-    setConfig: vi.fn(),
+    createJiraClient: vi.fn(),
 }));
 
 vi.mock('./jiraService.js', () => ({
@@ -37,7 +39,7 @@ vi.mock('./githubService.js', () => ({
 
 // Import mocked modules for assertions
 import { Team, Task } from '../models/index.js';
-import * as jiraConfigGateway from '../gateways/jiraConfigGateway.js';
+import { createJiraClient } from '../gateways/jiraConfigGateway.js';
 import * as jiraService from './jiraService.js';
 import * as githubService from './githubService.js';
 
@@ -332,11 +334,14 @@ describe('getTeamAnalytics', () => {
     });
 
     it('should fetch from Jira when cache is stale', async () => {
+        const mockJiraClient = { post: vi.fn() };
+        vi.mocked(createJiraClient).mockReturnValue(mockJiraClient);
         vi.mocked(Team.findByPk).mockResolvedValue({
             ...mockTeamBase,
             TeamCredential: mockCredentialJira,
         });
         vi.mocked(Task.findOne).mockResolvedValue(null); // no cache
+        vi.mocked(Task.destroy).mockResolvedValue(0);
         vi.mocked(jiraService.fetchProjectIssues).mockResolvedValue([
             {
                 id: 'KBAS-10',
@@ -356,12 +361,12 @@ describe('getTeamAnalytics', () => {
 
         const result = await getTeamAnalytics(1);
 
-        expect(jiraConfigGateway.setConfig).toHaveBeenCalledWith({
+        expect(createJiraClient).toHaveBeenCalledWith({
             baseUrl: mockCredentialJira.baseUrl,
             email: mockCredentialJira.email,
             apiToken: mockCredentialJira.apiToken,
         });
-        expect(jiraService.fetchProjectIssues).toHaveBeenCalledWith('KBAS');
+        expect(jiraService.fetchProjectIssues).toHaveBeenCalledWith('KBAS', { client: mockJiraClient });
         expect(Task.bulkCreate).toHaveBeenCalled();
         expect(result.meta.source).toBe('jira');
         expect(result.meta.cached).toBe(false);
@@ -375,6 +380,7 @@ describe('getTeamAnalytics', () => {
             TeamCredential: mockCredentialGithub,
         });
         vi.mocked(Task.findOne).mockResolvedValue(null); // no cache
+        vi.mocked(Task.destroy).mockResolvedValue(0);
         vi.mocked(githubService.getKanbanData).mockResolvedValue({
             repository: { owner: 'SIT-Team-4', repo: 'KABAS' },
             fetchedAt: new Date().toISOString(),
@@ -412,6 +418,58 @@ describe('getTeamAnalytics', () => {
         expect(result.meta.cached).toBe(false);
         expect(result.tasks).toHaveLength(1);
         expect(result.tasks[0].id).toBe('GH-1');
+    });
+
+    it('should throw 400 when Jira baseUrl has no project key', async () => {
+        vi.mocked(Team.findByPk).mockResolvedValue({
+            ...mockTeamBase,
+            TeamCredential: { ...mockCredentialJira, baseUrl: 'https://site.atlassian.net' },
+        });
+        vi.mocked(Task.findOne).mockResolvedValue(null);
+
+        try {
+            await getTeamAnalytics(1);
+        } catch (err) {
+            expect(err.message).toBe('Invalid Jira baseUrl: could not extract project key');
+            expect(err.status).toBe(400);
+        }
+    });
+
+    it('should throw 400 when GitHub baseUrl is invalid', async () => {
+        vi.mocked(Team.findByPk).mockResolvedValue({
+            ...mockTeamBase,
+            TeamCredential: { ...mockCredentialGithub, baseUrl: 'https://github.com' },
+        });
+        vi.mocked(Task.findOne).mockResolvedValue(null);
+
+        try {
+            await getTeamAnalytics(1);
+        } catch (err) {
+            expect(err.message).toBe('Invalid GitHub baseUrl: could not extract owner/repo');
+            expect(err.status).toBe(400);
+        }
+    });
+
+    it('should delete old tasks before inserting fresh ones', async () => {
+        vi.mocked(createJiraClient).mockReturnValue({ post: vi.fn() });
+        vi.mocked(Team.findByPk).mockResolvedValue({
+            ...mockTeamBase,
+            TeamCredential: mockCredentialJira,
+        });
+        vi.mocked(Task.findOne).mockResolvedValue(null);
+        vi.mocked(Task.destroy).mockResolvedValue(5);
+        vi.mocked(jiraService.fetchProjectIssues).mockResolvedValue([
+            {
+                id: 'KBAS-10', title: 'Task', status: 'To Do', assignee: 'Alice', created: '2026-01-10', updated: '2026-01-15',
+            },
+        ]);
+        vi.mocked(Task.bulkCreate).mockResolvedValue();
+        vi.mocked(Task.findAll).mockResolvedValue([]);
+
+        await getTeamAnalytics(1);
+
+        expect(Task.destroy).toHaveBeenCalledWith({ where: { teamId: 1, source: 'jira' } });
+        expect(Task.bulkCreate).toHaveBeenCalled();
     });
 
     it('should handle null classGroup dates for projectDurationDays', async () => {
