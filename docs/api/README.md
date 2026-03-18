@@ -311,6 +311,93 @@ Formula: `((totalCompletionTime / totalTasks) / projectDuration) * 100`. Lower i
 
 ---
 
+## Multi-Team Analytics
+
+### `GET /api/analytics/teams`
+
+Returns per-team summaries and cohort-level aggregates for all teams. Reads from cached Task data only (does not trigger external API fetches). Supports optional class group filtering.
+
+**Auth:** `x-api-key`
+
+**Query Parameters:**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `classGroupId` | integer | Optional. Filter to teams in this class group |
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "teams": [
+      {
+        "teamId": 1,
+        "teamName": "Team Alpha",
+        "classGroupId": 1,
+        "classGroupName": "ICT2505C AY24/25",
+        "source": "jira",
+        "totalTasks": 24,
+        "todoCount": 5,
+        "inProgressCount": 8,
+        "completedCount": 9,
+        "backlogCount": 2,
+        "memberCount": 4,
+        "avgCompletionDays": 4.5,
+        "avgEfficiency": 12.3,
+        "lastFetchedAt": "2026-03-14T10:00:00.000Z"
+      }
+    ],
+    "cohort": {
+      "totalTeams": 6,
+      "totalTasks": 142,
+      "totalTodo": 30,
+      "totalInProgress": 45,
+      "totalCompleted": 55,
+      "totalBacklog": 12,
+      "avgCompletionDays": 5.2,
+      "avgEfficiency": 10.8
+    }
+  }
+}
+```
+
+#### Per-Team Summary Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `teamId` | integer | Team ID |
+| `teamName` | string | Team name |
+| `classGroupId` | integer\|null | Associated class group ID |
+| `classGroupName` | string\|null | Class group name |
+| `source` | string\|null | Provider: "jira", "github", or null if no credential |
+| `totalTasks` | integer | Total stored tasks |
+| `todoCount` | integer | Tasks in todo bucket |
+| `inProgressCount` | integer | Tasks in progress |
+| `completedCount` | integer | Completed tasks |
+| `backlogCount` | integer | Tasks in backlog |
+| `memberCount` | integer | Unique team members (excluding "Unassigned") |
+| `avgCompletionDays` | number\|null | Average completion time in days across members |
+| `avgEfficiency` | number\|null | Average efficiency % across members (lower is better) |
+| `lastFetchedAt` | string\|null | When data was last synced from source |
+
+#### Cohort Aggregate Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `totalTeams` | integer | Number of teams |
+| `totalTasks` | integer | Sum of all tasks across teams |
+| `totalTodo` | integer | Sum of todo tasks |
+| `totalInProgress` | integer | Sum of in-progress tasks |
+| `totalCompleted` | integer | Sum of completed tasks |
+| `totalBacklog` | integer | Sum of backlog tasks |
+| `avgCompletionDays` | number\|null | Weighted average completion days (by completed count per team) |
+| `avgEfficiency` | number\|null | Weighted average efficiency (by total tasks per team) |
+
+**Note:** This endpoint reads cached data only. To sync fresh data from Jira/GitHub, call `GET /api/teams/:teamId/analytics` for each team first.
+
+---
+
 ## Class Groups
 
 ### `POST /api/class-groups`

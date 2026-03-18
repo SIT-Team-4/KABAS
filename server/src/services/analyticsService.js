@@ -433,6 +433,168 @@ async function getTeamAnalytics(teamId) {
     };
 }
 
+/**
+ * Compute a summary object for a single team and its tasks.
+ * @param {Object} team - Team with ClassGroup and TeamCredential associations.
+ * @param {Array} tasks - Array of task objects for this team.
+ * @returns {Object} Team summary.
+ */
+function computeTeamSummary(team, tasks) {
+    // Count buckets
+    const todoCount = tasks.filter((t) => t.bucket === 'todo').length;
+    const inProgressCount = tasks.filter((t) => t.bucket === 'in_progress').length;
+    const completedCount = tasks.filter((t) => t.bucket === 'completed').length;
+    const backlogCount = tasks.filter((t) => t.bucket === 'backlog').length;
+
+    // Unique non-"Unassigned" owners
+    const memberCount = new Set(
+        tasks.map((t) => t.owner).filter((o) => o && o !== 'Unassigned'),
+    ).size;
+
+    // Average completion days across all members
+    const completionStats = computeCompletionStats(tasks);
+    const completionValues = Object.values(completionStats);
+    const completionSum = completionValues
+        .reduce((s, v) => s + v.avgDays, 0);
+    const avgCompletionDays = completionValues.length > 0
+        ? Math.round((completionSum / completionValues.length) * 10) / 10
+        : null;
+
+    // Average efficiency across all members (exclude nulls)
+    const classGroup = team.ClassGroup;
+    const durationMs = classGroup?.startDate && classGroup?.endDate
+        ? new Date(classGroup.endDate) - new Date(classGroup.startDate)
+        : null;
+    const projectDurationDays = durationMs != null
+        ? Math.max(1, Math.ceil(durationMs / (1000 * 60 * 60 * 24)))
+        : null;
+    const efficiencyStats = computeEfficiency(tasks, projectDurationDays);
+    const effValues = Object.values(efficiencyStats)
+        .filter((v) => v.efficiencyPercent != null);
+    const effSum = effValues
+        .reduce((s, v) => s + v.efficiencyPercent, 0);
+    const avgEfficiency = effValues.length > 0
+        ? Math.round((effSum / effValues.length) * 10) / 10
+        : null;
+
+    // Last fetched
+    const fetchedDates = tasks.map((t) => t.fetchedAt)
+        .filter(Boolean)
+        .map((d) => new Date(d).getTime());
+    const lastFetchedAt = fetchedDates.length > 0
+        ? new Date(Math.max(...fetchedDates)).toISOString()
+        : null;
+
+    return {
+        teamId: team.id,
+        teamName: team.name,
+        classGroupId: classGroup?.id || null,
+        classGroupName: classGroup?.name || null,
+        source: team.TeamCredential?.provider || null,
+        totalTasks: tasks.length,
+        todoCount,
+        inProgressCount,
+        completedCount,
+        backlogCount,
+        memberCount,
+        avgCompletionDays,
+        avgEfficiency,
+        lastFetchedAt,
+    };
+}
+
+/**
+ * Compute aggregate statistics across multiple team summaries.
+ * @param {Array} teamSummaries - Array of team summary objects from computeTeamSummary.
+ * @returns {Object} Cohort aggregate.
+ */
+function computeCohortAggregate(teamSummaries) {
+    if (teamSummaries.length === 0) {
+        return {
+            totalTeams: 0,
+            totalTasks: 0,
+            totalTodo: 0,
+            totalInProgress: 0,
+            totalCompleted: 0,
+            totalBacklog: 0,
+            avgCompletionDays: null,
+            avgEfficiency: null,
+        };
+    }
+
+    const totalTeams = teamSummaries.length;
+    const totalTasks = teamSummaries.reduce((s, t) => s + t.totalTasks, 0);
+    const totalTodo = teamSummaries.reduce((s, t) => s + t.todoCount, 0);
+    const totalInProgress = teamSummaries.reduce((s, t) => s + t.inProgressCount, 0);
+    const totalCompleted = teamSummaries.reduce((s, t) => s + t.completedCount, 0);
+    const totalBacklog = teamSummaries.reduce((s, t) => s + t.backlogCount, 0);
+
+    // Weighted average completion days (by completedCount per team)
+    const completionTeams = teamSummaries.filter(
+        (t) => t.avgCompletionDays != null && t.completedCount > 0,
+    );
+    const totalCompletedWeight = completionTeams
+        .reduce((s, t) => s + t.completedCount, 0);
+    const weightedCompletionSum = completionTeams
+        .reduce((s, t) => s + t.avgCompletionDays * t.completedCount, 0);
+    const avgCompletionDays = totalCompletedWeight > 0
+        ? Math.round((weightedCompletionSum / totalCompletedWeight) * 10) / 10
+        : null;
+
+    // Weighted average efficiency (by totalTasks per team)
+    const effTeams = teamSummaries.filter(
+        (t) => t.avgEfficiency != null && t.totalTasks > 0,
+    );
+    const totalEffWeight = effTeams
+        .reduce((s, t) => s + t.totalTasks, 0);
+    const weightedEffSum = effTeams
+        .reduce((s, t) => s + t.avgEfficiency * t.totalTasks, 0);
+    const avgEfficiency = totalEffWeight > 0
+        ? Math.round((weightedEffSum / totalEffWeight) * 10) / 10
+        : null;
+
+    return {
+        totalTeams,
+        totalTasks,
+        totalTodo,
+        totalInProgress,
+        totalCompleted,
+        totalBacklog,
+        avgCompletionDays,
+        avgEfficiency,
+    };
+}
+
+/**
+ * Fetch analytics for all teams, optionally filtered by classGroupId.
+ * @param {Object} [options] - Options object.
+ * @param {number} [options.classGroupId] - Filter by class group ID.
+ * @returns {Promise<Object>} { teams: TeamSummary[], cohort: CohortAggregate }
+ */
+async function getAllTeamsAnalytics({ classGroupId } = {}) {
+    const where = classGroupId ? { classGroupId } : {};
+    const teams = await Team.findAll({
+        where,
+        include: [{ model: ClassGroup }, { model: TeamCredential }],
+    });
+
+    const teamIds = teams.map((t) => t.id);
+    const allTasks = teamIds.length > 0
+        ? await Task.findAll({ where: { teamId: teamIds }, raw: true })
+        : [];
+
+    const tasksByTeam = allTasks.reduce((acc, task) => {
+        if (!acc[task.teamId]) acc[task.teamId] = [];
+        acc[task.teamId].push(task);
+        return acc;
+    }, {});
+
+    const teamSummaries = teams.map((team) => computeTeamSummary(team, tasksByTeam[team.id] || []));
+    const cohort = computeCohortAggregate(teamSummaries);
+
+    return { teams: teamSummaries, cohort };
+}
+
 export {
     getTeamAnalytics,
     normalizeJiraIssue,
@@ -446,4 +608,7 @@ export {
     computeStatusLeaders,
     computeCompletionStats,
     computeEfficiency,
+    computeTeamSummary,
+    computeCohortAggregate,
+    getAllTeamsAnalytics,
 };
