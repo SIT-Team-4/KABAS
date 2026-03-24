@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { Team, ClassGroup } from '../models/index.js';
 
 /**
@@ -28,6 +29,9 @@ export async function getAllTeams(query = {}) {
     const where = {};
     if (query.classGroupId) {
         where.classGroupId = query.classGroupId;
+    }
+    if (query.search) {
+        where.name = { [Op.like]: `%${query.search}%` };
     }
     return Team.findAll({
         where,
