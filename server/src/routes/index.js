@@ -8,6 +8,7 @@ import jiraRouter from './jira.js';
 import classGroupRoutes from './classGroups.js';
 import teamRoutes from './teams.js';
 import analyticsRoutes from './analytics.js';
+import authRoutes from './auth.js';
 
 const router = express.Router();
 
@@ -20,5 +21,6 @@ router.use('/jira', jiraRouter);
 router.use('/class-groups', classGroupRoutes);
 router.use('/teams', teamRoutes);
 router.use('/analytics', analyticsRoutes);
+router.use('/auth', authRoutes);
 
 export default router;
