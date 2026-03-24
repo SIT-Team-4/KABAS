@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Op } from 'sequelize';
 import * as teamService from './teamService.js';
 import { Team, ClassGroup } from '../models/index.js';
 
@@ -88,6 +89,33 @@ describe('teamService', () => {
             expect(Team.findAll).toHaveBeenCalledWith(
                 expect.objectContaining({
                     where: { classGroupId: 5 },
+                }),
+            );
+        });
+
+        it('should filter by search term on name', async () => {
+            vi.mocked(Team.findAll).mockResolvedValue([]);
+
+            await teamService.getAllTeams({ search: 'Alpha' });
+
+            expect(Team.findAll).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { name: { [Op.like]: '%Alpha%' } },
+                }),
+            );
+        });
+
+        it('should combine classGroupId and search filters', async () => {
+            vi.mocked(Team.findAll).mockResolvedValue([]);
+
+            await teamService.getAllTeams({ classGroupId: 5, search: 'Alpha' });
+
+            expect(Team.findAll).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: {
+                        classGroupId: 5,
+                        name: { [Op.like]: '%Alpha%' },
+                    },
                 }),
             );
         });

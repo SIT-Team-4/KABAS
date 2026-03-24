@@ -121,6 +121,7 @@ Get all teams. Optionally filter by query parameters.
 | Param | Type | Description |
 |-------|------|-------------|
 | `classGroupId` | integer | Filter by class group |
+| `search` | string | Filter teams by name (case-insensitive partial match) |
 
 **Response (200):**
 ```json
