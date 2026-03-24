@@ -74,9 +74,9 @@ Authenticate and receive a JWT token. Public — no auth required.
 
 ### `GET /api/auth/me`
 
-Get the current authenticated user.
+Get the current authenticated user. Requires JWT authentication; `x-api-key` auth does not populate user context so this endpoint will not return user data when called with an API key.
 
-**Auth:** Bearer token or `x-api-key`
+**Auth:** Bearer token (JWT)
 
 **Response (200):**
 ```json
@@ -85,8 +85,6 @@ Get the current authenticated user.
   "data": { "id": 1, "name": "Dr. Smith", "email": "smith@uni.edu", "role": "instructor" }
 }
 ```
-
-**Note:** When using `x-api-key`, `req.user` is not set so this endpoint returns the API key context only via JWT.
 
 ---
 
