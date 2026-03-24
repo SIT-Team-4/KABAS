@@ -65,6 +65,19 @@ describe('teamController', () => {
                 classGroupId: '5',
             });
         });
+
+        it('should pass search query filter', async () => {
+            vi.mocked(teamService.getAllTeams).mockResolvedValue([]);
+
+            const req = { query: { search: 'Alpha' } };
+            const res = { json: vi.fn(), status: vi.fn().mockReturnThis() };
+
+            await teamController.getAll(req, res, vi.fn());
+
+            expect(teamService.getAllTeams).toHaveBeenCalledWith({
+                search: 'Alpha',
+            });
+        });
     });
 
     describe('getById', () => {
