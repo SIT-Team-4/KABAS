@@ -11,10 +11,13 @@ function ShellLayout({ children }) {
   return <AppShell>{children}</AppShell>;
 }
 
+function ShellLayout({ children }) {
+  return <AppShell>{children}</AppShell>;
+}
+
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
       <Route
         path="/teams/:teamId"
         element={

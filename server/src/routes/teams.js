@@ -6,6 +6,7 @@ import express from 'express';
 import auth from '../middleware/auth.js';
 import * as teamController from '../controllers/teamController.js';
 import * as teamCredentialController from '../controllers/teamCredentialController.js';
+import * as analyticsController from '../controllers/analyticsController.js';
 
 const router = express.Router();
 
@@ -15,6 +16,9 @@ router.get('/', auth, teamController.getAll);
 router.get('/:teamId', auth, teamController.getById);
 router.put('/:teamId', auth, teamController.update);
 router.delete('/:teamId', auth, teamController.remove);
+
+// Team Analytics
+router.get('/:teamId/analytics', auth, analyticsController.getTeamAnalytics);
 
 // Team Credential CRUD (nested under team)
 router.post('/:teamId/credentials', auth, teamCredentialController.create);

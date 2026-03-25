@@ -5,16 +5,18 @@ const JIRA_BASE_URL = process.env.JIRA_BASE_URL ?? '';
 /**
  * Fetch all issues for a Jira project and normalize them.
  * @param {string} projectKey - The Jira project key (e.g. "KBAS").
+ * @param {Object} [options] - Optional settings.
+ * @param {AxiosInstance} [options.client] - Pre-built Jira client (avoids global config).
  * @returns {Promise<Array<Object>>} Array of normalized issue objects.
  * @throws {Error} If projectKey is invalid or the API call fails.
  */
-export const fetchProjectIssues = async (projectKey) => {
+export const fetchProjectIssues = async (projectKey, options = {}) => {
     if (!projectKey || typeof projectKey !== 'string') {
         throw new Error('Project key is required and must be a string');
     }
 
     try {
-        const issues = await jiraGateway.getIssues(projectKey);
+        const issues = await jiraGateway.getIssues(projectKey, options);
 
         if (!Array.isArray(issues)) {
             return [];
