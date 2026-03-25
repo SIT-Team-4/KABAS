@@ -8,7 +8,6 @@ import {
   Checkbox,
   FormControlLabel,
   Divider,
-  IconButton,
 } from "@mui/material";
 
 import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
