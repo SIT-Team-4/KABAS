@@ -14,6 +14,7 @@ function ShellLayout({ children }) {
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<LoginPage />} />
       <Route
         path="/teams/:teamId"
         element={
