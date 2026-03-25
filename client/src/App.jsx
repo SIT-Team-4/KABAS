@@ -11,10 +11,6 @@ function ShellLayout({ children }) {
   return <AppShell>{children}</AppShell>;
 }
 
-function ShellLayout({ children }) {
-  return <AppShell>{children}</AppShell>;
-}
-
 export default function App() {
   return (
     <Routes>
