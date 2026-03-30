@@ -156,8 +156,9 @@ export default function TeamCredentials() {
   async function handleAddTeam() {
     if (!addForm.teamName.trim() || !addForm.repo.trim() || !addForm.token.trim()) return;
 
+    let createdTeam = null;
     try {
-      const createdTeam = await createTeam({ name: addForm.teamName.trim() });
+      createdTeam = await createTeam({ name: addForm.teamName.trim() });
       await createTeamCredential(createdTeam.id, {
         provider: toProvider(addForm.platform),
         baseUrl: addForm.repo.trim(),
@@ -169,6 +170,9 @@ export default function TeamCredentials() {
       setAddForm(emptyForm);
       refreshTeams();
     } catch (err) {
+      if (createdTeam) {
+        await deleteTeam(createdTeam.id).catch(() => undefined);
+      }
       setError(err?.message || "Unable to create team credential");
     }
   }

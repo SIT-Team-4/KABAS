@@ -1,4 +1,4 @@
-import { getToken } from "./tokenStore";
+import { clearToken, getToken } from "./tokenStore";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:3001/api";
@@ -45,6 +45,12 @@ async function request(path, options = {}) {
 
   if (!response.ok) {
     const message = payload?.error || payload?.message || "Request failed";
+
+    if (response.status === 401 && auth) {
+      clearToken();
+      window.location.replace("/");
+    }
+
     throw new ApiError(message, response.status, payload);
   }
 
