@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -8,6 +9,7 @@ import {
   Checkbox,
   FormControlLabel,
   Divider,
+  Alert,
 } from "@mui/material";
 
 import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
@@ -16,9 +18,36 @@ import AccountTreeRoundedIcon from "@mui/icons-material/AccountTreeRounded";
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomizeRounded";
 import GitHubIcon from "@mui/icons-material/GitHub";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [rememberMe, setRememberMe] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!email.trim() || !password) {
+      setError("Email and password are required.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+    try {
+      await login({ email: email.trim(), password, rememberMe });
+      navigate("/all-teams", { replace: true });
+    } catch (err) {
+      setError(err?.message || "Unable to sign in. Please verify your credentials.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const featureItems = [
     {
@@ -190,7 +219,13 @@ export default function LoginPage() {
                 Sign in to access your instructor dashboard
               </Typography>
 
-              <Box component="form" sx={{ mt: 3, display: "grid", gap: 2 }}>
+              <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, display: "grid", gap: 2 }}>
+                {error ? (
+                  <Alert severity="error" sx={{ borderRadius: 2 }}>
+                    {error}
+                  </Alert>
+                ) : null}
+
                 <Box>
                   <Typography sx={{ fontWeight: 700, fontSize: 13, mb: 0.8 }}>
                     Email address
@@ -200,6 +235,9 @@ export default function LoginPage() {
                     size="small"
                     placeholder="instructor@university.edu"
                     variant="outlined"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                     InputProps={{
                       sx: {
                         borderRadius: 2,
@@ -240,6 +278,9 @@ export default function LoginPage() {
                     placeholder="Enter your password"
                     type="password"
                     variant="outlined"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
                     InputProps={{
                       sx: {
                         borderRadius: 2,
@@ -278,6 +319,8 @@ export default function LoginPage() {
                 <Button
                   fullWidth
                   variant="contained"
+                  type="submit"
+                  disabled={isSubmitting || !email.trim() || !password}
                   sx={{
                     mt: 0.5,
                     py: 1.35,
@@ -293,7 +336,7 @@ export default function LoginPage() {
                     },
                   }}
                 >
-                  Sign in
+                  {isSubmitting ? "Signing in..." : "Sign in"}
                 </Button>
               </Box>
 

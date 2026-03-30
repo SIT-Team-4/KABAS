@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useParams, Navigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Box,
   Grid,
@@ -14,6 +14,8 @@ import {
   TableBody,
   Avatar,
   Chip,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
 
 import SyncRoundedIcon from "@mui/icons-material/SyncRounded";
@@ -22,14 +24,9 @@ import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
 import StatusCard from "../components/StatusCard";
 import TasksModal from "../components/TasksModal";
 import TaskDetailsModal from "../components/TaskDetailsModal";
-import {
-  statusCards,
-  getCountsByBucket,
-  getTeamById,
-  getMembersByTeamId,
-  getTasksByTeamId,
-  DEFAULT_TEAM_ID,
-} from "../data/mock";
+import { statusCards, getCountsByBucket } from "../constants/statusCards";
+import { getTeamById } from "../api/teamsApi";
+import { getTeamAnalytics } from "../api/analyticsApi";
 
 // ----------------------------
 // Helpers (UI-safe + defensive)
@@ -179,11 +176,49 @@ function DonutChart({ segments, totalCount = 0, size = 140, thickness = 18 }) {
 
 export default function TeamDashboard() {
   const { teamId } = useParams();
+  const [team, setTeam] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
-  const activeTeamId = teamId || DEFAULT_TEAM_ID;
-  const team = getTeamById(activeTeamId);
-  const memberObjects = getMembersByTeamId(activeTeamId);
-  const tasks = getTasksByTeamId(activeTeamId);
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const loadDashboard = async () => {
+      setIsLoading(true);
+      setLoadError("");
+
+      try {
+        const numericTeamId = Number(teamId);
+        if (Number.isNaN(numericTeamId)) {
+          throw new Error("Invalid team selected");
+        }
+
+        const [teamData, analyticsData] = await Promise.all([
+          getTeamById(numericTeamId),
+          getTeamAnalytics(numericTeamId),
+        ]);
+
+        if (!isMounted) return;
+
+        setTeam(teamData);
+        setTasks(Array.isArray(analyticsData?.tasks) ? analyticsData.tasks : []);
+      } catch (err) {
+        if (!isMounted) return;
+        setLoadError(err?.message || "Unable to load team analytics");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    if (teamId) {
+      loadDashboard();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [teamId]);
 
   const [popupStatus, setPopupStatus] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -236,13 +271,9 @@ export default function TeamDashboard() {
   const keyBacklog = statusCards.find((s) => /backlog/i.test(s.label))?.key;
 
   const members = useMemo(() => {
-    if (Array.isArray(memberObjects) && memberObjects.length) {
-      return memberObjects.map((m) => m.name);
-    }
-
     const owners = tasks.map((t) => taskOwner(t)).filter(Boolean);
     return Array.from(new Set(owners));
-  }, [memberObjects, tasks]);
+  }, [tasks]);
 
   const memberPopupTasks = useMemo(() => {
     if (!memberPopup) return [];
@@ -445,8 +476,20 @@ export default function TeamDashboard() {
     return `${memberAllPopup} - All Tasks (${memberAllTasks.length})`;
   }, [memberAllPopup, memberAllTasks]);
 
+  if (isLoading) {
+    return (
+      <Box sx={{ minHeight: 420, display: "grid", placeItems: "center" }}>
+        <CircularProgress size={30} />
+      </Box>
+    );
+  }
+
+  if (loadError) {
+    return <Alert severity="error">{loadError}</Alert>;
+  }
+
   if (!team) {
-    return <Navigate to={`/teams/${DEFAULT_TEAM_ID}`} replace />;
+    return <Alert severity="warning">Team not found.</Alert>;
   }
 
   return (
@@ -471,7 +514,7 @@ export default function TeamDashboard() {
             {team.name}
           </Typography>
           <Typography sx={{ mt: 0.5, color: "text.secondary", fontSize: 13 }}>
-            {team.members} members • {totalTasks} tasks tracked
+            {members.length} members • {totalTasks} tasks tracked
           </Typography>
         </Box>
 
