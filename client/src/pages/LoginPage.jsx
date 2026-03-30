@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -22,6 +22,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const [rememberMe, setRememberMe] = useState(true);
@@ -29,6 +30,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const destination = location.state?.from?.pathname || "/all-teams";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -41,7 +43,7 @@ export default function LoginPage() {
     setError("");
     try {
       await login({ email: email.trim(), password, rememberMe });
-      navigate("/all-teams", { replace: true });
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(err?.message || "Unable to sign in. Please verify your credentials.");
     } finally {

@@ -34,7 +34,8 @@ export async function updateTeam(teamId, payload) {
 }
 
 export async function deleteTeam(teamId) {
-  return apiClient.request(`/teams/${teamId}`, {
+  const response = await apiClient.request(`/teams/${teamId}`, {
     method: "DELETE",
   });
+  return response.data;
 }

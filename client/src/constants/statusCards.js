@@ -15,7 +15,11 @@ export const statusCards = [
 export function getCountsByBucket(tasks = []) {
   return tasks.reduce(
     (acc, task) => {
-      if (task.bucket && Object.prototype.hasOwnProperty.call(acc, task.bucket)) {
+      if (!task || typeof task !== "object" || task.bucket == null) {
+        return acc;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(acc, task.bucket)) {
         acc[task.bucket] += 1;
       }
       return acc;

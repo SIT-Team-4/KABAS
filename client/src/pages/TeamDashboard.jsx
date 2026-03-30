@@ -177,6 +177,7 @@ function DonutChart({ segments, totalCount = 0, size = 140, thickness = 18 }) {
 export default function TeamDashboard() {
   const { teamId } = useParams();
   const [team, setTeam] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -202,9 +203,11 @@ export default function TeamDashboard() {
         if (!isMounted) return;
 
         setTeam(teamData);
+        setAnalytics(analyticsData || null);
         setTasks(Array.isArray(analyticsData?.tasks) ? analyticsData.tasks : []);
       } catch (err) {
         if (!isMounted) return;
+        setAnalytics(null);
         setLoadError(err?.message || "Unable to load team analytics");
       } finally {
         if (isMounted) setIsLoading(false);
@@ -275,6 +278,32 @@ export default function TeamDashboard() {
     return Array.from(new Set(owners));
   }, [tasks]);
 
+  const teamMemberCount = useMemo(() => {
+    if (typeof team?.memberCount === "number" && team.memberCount >= 0) {
+      return team.memberCount;
+    }
+
+    if (Array.isArray(team?.members)) {
+      return team.members.filter((member) => {
+        if (!member) return false;
+
+        if (typeof member === "string") {
+          return member.trim() !== "" && member.toLowerCase() !== "unassigned";
+        }
+
+        if (typeof member === "object") {
+          const rawName = member.name || member.displayName || member.username || member.email;
+          const name = String(rawName || "").trim();
+          return name !== "" && name.toLowerCase() !== "unassigned";
+        }
+
+        return false;
+      }).length;
+    }
+
+    return members.filter((member) => member && member !== "Unassigned").length;
+  }, [team, members]);
+
   const memberPopupTasks = useMemo(() => {
     if (!memberPopup) return [];
     const { memberName, bucketKey } = memberPopup;
@@ -306,6 +335,13 @@ export default function TeamDashboard() {
     asDate(t.completedAt || t.doneAt || t.closedAt || t.resolvedAt || t.completed);
 
   const projectDurationDays = useMemo(() => {
+    if (
+      typeof analytics?.meta?.projectDurationDays === "number"
+      && analytics.meta.projectDurationDays > 0
+    ) {
+      return analytics.meta.projectDurationDays;
+    }
+
     const dates = tasks
       .map((t) => taskCreatedAt(t))
       .filter(Boolean)
@@ -313,7 +349,7 @@ export default function TeamDashboard() {
 
     if (dates.length < 2) return 1;
     return Math.max(1, diffDays(dates[0], dates[dates.length - 1]) || 1);
-  }, [tasks]);
+  }, [analytics, tasks]);
 
   const distributionSegments = useMemo(() => {
     return statusCards.map((s) => {
@@ -514,7 +550,7 @@ export default function TeamDashboard() {
             {team.name}
           </Typography>
           <Typography sx={{ mt: 0.5, color: "text.secondary", fontSize: 13 }}>
-            {members.length} members • {totalTasks} tasks tracked
+            {teamMemberCount} members • {totalTasks} tasks tracked
           </Typography>
         </Box>
 

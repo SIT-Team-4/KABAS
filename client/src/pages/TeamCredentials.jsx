@@ -36,7 +36,7 @@ import { createTeam, deleteTeam, listTeams, updateTeam } from "../api/teamsApi";
 import {
   createTeamCredential,
   deleteTeamCredential,
-  getTeamCredential,
+  getTeamCredentials,
   updateTeamCredential,
 } from "../api/teamCredentialsApi";
 
@@ -114,32 +114,37 @@ export default function TeamCredentials() {
     setError("");
     try {
       const rawTeams = await listTeams();
-      const mapped = await Promise.all(
-        rawTeams.map(async (team) => {
-          try {
-            const credential = await getTeamCredential(team.id);
-            return {
-              id: team.id,
-              name: team.name,
-              platform: toPlatform(credential.provider),
-              repo: credential.baseUrl || "",
-              email: credential.email || "",
-              hasToken: !!credential.hasApiToken,
-              status: "Connected",
-            };
-          } catch {
-            return {
-              id: team.id,
-              name: team.name,
-              platform: "GitHub",
-              repo: "",
-              email: "",
-              hasToken: false,
-              status: "Not Configured",
-            };
-          }
-        })
+      const teamIds = rawTeams.map((team) => team.id);
+      const credentials = await getTeamCredentials(teamIds);
+      const credentialByTeamId = new Map(
+        credentials.map((credential) => [credential.teamId, credential])
       );
+
+      const mapped = rawTeams.map((team) => {
+        const credential = credentialByTeamId.get(team.id);
+        if (!credential) {
+          return {
+            id: team.id,
+            name: team.name,
+            platform: "GitHub",
+            repo: "",
+            email: "",
+            hasToken: false,
+            status: "Not Configured",
+          };
+        }
+
+        return {
+          id: team.id,
+          name: team.name,
+          platform: toPlatform(credential.provider),
+          repo: credential.baseUrl || "",
+          email: credential.email || "",
+          hasToken: !!credential.hasApiToken,
+          status: "Connected",
+        };
+      });
+
       setTeams(mapped);
     } catch (err) {
       setError(err?.message || "Unable to load teams and credentials");
@@ -193,9 +198,12 @@ export default function TeamCredentials() {
   async function handleUpdateTeam() {
     if (!editTeam) return;
     if (!editForm.teamName.trim() || !editForm.repo.trim()) return;
+    if (editTeam.status !== "Connected" && !editForm.token.trim()) {
+      setError("A token is required to configure credentials for this team");
+      return;
+    }
 
     try {
-      await updateTeam(editTeam.id, { name: editForm.teamName.trim() });
       const payload = {
         provider: toProvider(editForm.platform),
         baseUrl: editForm.repo.trim(),
@@ -205,9 +213,7 @@ export default function TeamCredentials() {
         payload.apiToken = editForm.token.trim();
       }
 
-      if (editTeam.status !== "Connected" && !editForm.token.trim()) {
-        throw new Error("A token is required to configure credentials for this team");
-      }
+      await updateTeam(editTeam.id, { name: editForm.teamName.trim() });
 
       if (editTeam.status === "Connected") {
         await updateTeamCredential(editTeam.id, payload);

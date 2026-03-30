@@ -18,10 +18,12 @@ const corsAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
 
 const corsOptions = {
     origin(origin, callback) {
-        if (!origin || corsAllowedOrigins.length === 0 || corsAllowedOrigins.includes(origin)) {
+        if (!origin || corsAllowedOrigins.includes(origin)) {
             return callback(null, true);
         }
-        return callback(new Error('Origin not allowed by CORS policy'));
+        const error = new Error('Origin not allowed by CORS policy');
+        error.status = 403;
+        return callback(error);
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],

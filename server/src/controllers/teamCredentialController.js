@@ -49,6 +49,31 @@ export async function get(req, res, next) {
 }
 
 /**
+ * Get credentials for multiple teams.
+ * @param {import('express').Request} req - Express request with teamIds query param.
+ * @param {import('express').Response} res - Express response.
+ * @param {import('express').NextFunction} next - Express next middleware.
+ */
+export async function listByTeams(req, res, next) {
+    try {
+        const rawTeamIds = String(req.query.teamIds || '');
+        const teamIds = rawTeamIds
+            .split(',')
+            .map((id) => Number(id.trim()))
+            .filter((id) => Number.isInteger(id) && id > 0);
+
+        if (teamIds.length === 0) {
+            return res.json({ success: true, data: [] });
+        }
+
+        const credentials = await teamCredentialService.getCredentialsForTeams(teamIds);
+        return res.json({ success: true, data: credentials });
+    } catch (err) {
+        return next(err);
+    }
+}
+
+/**
  * Update the credential for a team.
  * @param {import('express').Request} req - Request with teamId param and body.
  * @param {import('express').Response} res - Express response.
