@@ -25,22 +25,52 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { teams, DEFAULT_TEAM_ID, getTeamById } from "../data/mock";
+import { listTeams } from "../api/teamsApi";
+import { useAuth } from "../context/AuthContext";
 
 export default function AppShell({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { teamId } = useParams();
+  const { user, logout } = useAuth();
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [teamQuery, setTeamQuery] = useState("");
+  const [teams, setTeams] = useState([]);
+  const [teamsError, setTeamsError] = useState("");
 
   const dropdownOpen = Boolean(anchorEl);
 
-  const activeTeam =
-    getTeamById(teamId || DEFAULT_TEAM_ID) ||
-    teams.find((t) => t.id === DEFAULT_TEAM_ID) ||
-    teams[0];
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const loadTeams = async () => {
+      try {
+        const data = await listTeams();
+        if (!isMounted) return;
+        setTeams(Array.isArray(data) ? data : []);
+        setTeamsError("");
+      } catch (err) {
+        if (!isMounted) return;
+        setTeamsError(err?.message || "Unable to load teams");
+      }
+    };
+
+    loadTeams();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const activeTeam = useMemo(() => {
+    if (!teams.length) return null;
+    if (!teamId) return teams[0];
+
+    const numericTeamId = Number(teamId);
+    if (Number.isNaN(numericTeamId)) return teams[0];
+    return teams.find((team) => team.id === numericTeamId) || teams[0];
+  }, [teamId, teams]);
 
   const filteredTeams = useMemo(() => {
     const q = teamQuery.trim().toLowerCase();
@@ -49,10 +79,10 @@ export default function AppShell({ children }) {
     return teams.filter(
       (team) =>
         team.name.toLowerCase().includes(q) ||
-        String(team.source || "").toLowerCase().includes(q) ||
-        team.id.toLowerCase().includes(q)
+        String(team.classGroup?.name || "").toLowerCase().includes(q) ||
+        String(team.id).includes(q)
     );
-  }, [teamQuery]);
+  }, [teamQuery, teams]);
 
   const handleOpenDropdown = (event) => {
     setAnchorEl(event.currentTarget);
@@ -66,6 +96,11 @@ export default function AppShell({ children }) {
   const handleSelectTeam = (team) => {
     navigate(`/teams/${team.id}`);
     handleCloseDropdown();
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
   };
 
   const navBtnBase = {
@@ -254,7 +289,7 @@ export default function AppShell({ children }) {
                                     color: "rgba(16,24,40,0.45)",
                                   }}
                                 >
-                                  {team.source || "—"}
+                                  {team.classGroup?.name || "—"}
                                 </Typography>
                               </Box>
                             }
@@ -265,7 +300,7 @@ export default function AppShell({ children }) {
                   ) : (
                     <Box sx={{ px: 2, py: 2 }}>
                       <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
-                        No teams found.
+                        {teamsError || "No teams found."}
                       </Typography>
                     </Box>
                   )}
@@ -321,16 +356,17 @@ export default function AppShell({ children }) {
 
               <Box sx={{ display: { xs: "none", sm: "block" } }}>
                 <Typography sx={{ fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>
-                  Instructor
+                  {user?.name || "Instructor"}
                 </Typography>
                 <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                  instructor@google.com
+                  {user?.email || ""}
                 </Typography>
               </Box>
 
               <IconButton
                 size="small"
                 title="Logout"
+                onClick={handleLogout}
                 sx={{
                   borderRadius: 2,
                   "&:hover": { bgcolor: "rgba(15,23,42,0.06)" },

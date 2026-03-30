@@ -1,4 +1,4 @@
-import { UniqueConstraintError } from 'sequelize';
+import { Op, UniqueConstraintError } from 'sequelize';
 import { Team, TeamCredential } from '../models/index.js';
 
 /**
@@ -62,6 +62,27 @@ export async function getCredential(teamId) {
     }
 
     return sanitizeCredential(credential);
+}
+
+/**
+ * Get credentials for multiple teams.
+ * @param {number[]} teamIds - Team IDs.
+ * @returns {Promise<Object[]>} Sanitized credentials.
+ */
+export async function getCredentialsForTeams(teamIds) {
+    if (!Array.isArray(teamIds) || teamIds.length === 0) {
+        return [];
+    }
+
+    const credentials = await TeamCredential.findAll({
+        where: {
+            teamId: {
+                [Op.in]: teamIds,
+            },
+        },
+    });
+
+    return credentials.map((credential) => sanitizeCredential(credential));
 }
 
 /**

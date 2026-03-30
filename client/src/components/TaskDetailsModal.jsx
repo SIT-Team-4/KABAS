@@ -16,8 +16,7 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import TagRoundedIcon from "@mui/icons-material/TagRounded";
 
-// ✅ adjust path if your folder differs
-import { statusCards } from "../data/mock";
+import { statusCards } from "../constants/statusCards";
 
 // ---------- helpers ----------
 function calculateDurationInDays(createdAt) {

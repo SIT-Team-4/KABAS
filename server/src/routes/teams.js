@@ -13,6 +13,7 @@ const router = express.Router();
 // Team CRUD
 router.post('/', auth, teamController.create);
 router.get('/', auth, teamController.getAll);
+router.get('/credentials', auth, teamCredentialController.listByTeams);
 router.get('/:teamId', auth, teamController.getById);
 router.put('/:teamId', auth, teamController.update);
 router.delete('/:teamId', auth, teamController.remove);

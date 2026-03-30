@@ -19,7 +19,9 @@ import {
   Stack,
   Radio,
   RadioGroup,
-  FormControlLabel
+  FormControlLabel,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
@@ -30,34 +32,37 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import LinkRoundedIcon from "@mui/icons-material/LinkRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
-const ORANGE = "#F79009";
+import { createTeam, deleteTeam, listTeams, updateTeam } from "../api/teamsApi";
+import {
+  createTeamCredential,
+  deleteTeamCredential,
+  getTeamCredentials,
+  updateTeamCredential,
+} from "../api/teamCredentialsApi";
 
-const INITIAL_TEAMS = [
-  {
-    id: "alpha",
-    name: "Team Alpha",
-    platform: "GitHub",
-    repo: "alpha-team/project-x",
-    token: "ghp_xxxxxxxxxxxx",
-    status: "Connected"
+const ORANGE = "#F79009";
+const mono = "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace";
+
+const inputSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 2,
+    backgroundColor: "#fff",
+    "& fieldset": { borderColor: "rgba(15,23,42,0.10)" },
+    "&:hover fieldset": { borderColor: "rgba(15,23,42,0.20)" },
+    "&.Mui-focused fieldset": { borderColor: ORANGE },
   },
-  {
-    id: "beta",
-    name: "Team Beta",
-    platform: "Jira",
-    repo: "beta-team.atlassian.net",
-    token: "xxxxxxxxxxxx",
-    status: "Connected"
-  },
-  {
-    id: "gamma",
-    name: "Team Gamma",
-    platform: "GitHub",
-    repo: "gamma-team/project-y",
-    token: "ghp_xxxxxxxxxxxx",
-    status: "Connected"
-  }
-];
+};
+
+const emptyForm = {
+  teamName: "",
+  platform: "GitHub",
+  repo: "",
+  token: "",
+  email: "",
+};
+
+const toProvider = (platform) => (platform === "Jira" ? "jira" : "github");
+const toPlatform = (provider) => (provider === "jira" ? "Jira" : "GitHub");
 
 function initials(name) {
   return name
@@ -73,131 +78,178 @@ function platformDotColor(platform) {
   return platform === "GitHub" ? "#12B76A" : "#2E90FA";
 }
 
-const mono = "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace";
-
-const inputSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: 2,
-    backgroundColor: "#fff",
-    "& fieldset": { borderColor: "rgba(15,23,42,0.10)" },
-    "&:hover fieldset": { borderColor: "rgba(15,23,42,0.20)" },
-    "&.Mui-focused fieldset": { borderColor: ORANGE }
-  }
-};
-
 export default function TeamCredentials() {
-  const [teams, setTeams] = useState(INITIAL_TEAMS);
-
+  const [teams, setTeams] = useState([]);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // ADD modal state
   const [openAdd, setOpenAdd] = useState(false);
-  const [teamName, setTeamName] = useState("");
-  const [platform, setPlatform] = useState("GitHub");
-  const [repo, setRepo] = useState("");
-  const [token, setToken] = useState("");
-
-  // EDIT modal state
+  const [addForm, setAddForm] = useState(emptyForm);
   const [openEdit, setOpenEdit] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [editTeamName, setEditTeamName] = useState("");
-  const [editPlatform, setEditPlatform] = useState("GitHub");
-  const [editRepo, setEditRepo] = useState("");
-  const [editToken, setEditToken] = useState("");
+  const [editTeam, setEditTeam] = useState(null);
+  const [editForm, setEditForm] = useState(emptyForm);
+
+  React.useEffect(() => {
+    refreshTeams();
+  }, []);
 
   const filteredTeams = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return teams.filter((t) => {
+    return teams.filter((team) => {
       const matchesQuery =
-        !q ||
-        t.name.toLowerCase().includes(q) ||
-        t.platform.toLowerCase().includes(q) ||
-        t.repo.toLowerCase().includes(q);
+        !q
+        || team.name.toLowerCase().includes(q)
+        || team.platform.toLowerCase().includes(q)
+        || team.repo.toLowerCase().includes(q);
 
-      const matchesStatus =
-        statusFilter === "All Status" ? true : t.status === statusFilter;
-
+      const matchesStatus = statusFilter === "All Status" ? true : team.status === statusFilter;
       return matchesQuery && matchesStatus;
     });
   }, [teams, query, statusFilter]);
 
-  function resetAddForm() {
-    setTeamName("");
-    setPlatform("GitHub");
-    setRepo("");
-    setToken("");
+  async function refreshTeams() {
+    setIsLoading(true);
+    setError("");
+    try {
+      const rawTeams = await listTeams();
+      const teamIds = rawTeams.map((team) => team.id);
+      const credentials = await getTeamCredentials(teamIds);
+      const credentialByTeamId = new Map(
+        credentials.map((credential) => [credential.teamId, credential])
+      );
+
+      const mapped = rawTeams.map((team) => {
+        const credential = credentialByTeamId.get(team.id);
+        if (!credential) {
+          return {
+            id: team.id,
+            name: team.name,
+            platform: "GitHub",
+            repo: "",
+            email: "",
+            hasToken: false,
+            status: "Not Configured",
+          };
+        }
+
+        return {
+          id: team.id,
+          name: team.name,
+          platform: toPlatform(credential.provider),
+          repo: credential.baseUrl || "",
+          email: credential.email || "",
+          hasToken: !!credential.hasApiToken,
+          status: "Connected",
+        };
+      });
+
+      setTeams(mapped);
+    } catch (err) {
+      setError(err?.message || "Unable to load teams and credentials");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
-  function handleOpenAdd() {
-    resetAddForm();
-    setOpenAdd(true);
-  }
+  async function handleAddTeam() {
+    if (!addForm.teamName.trim() || !addForm.repo.trim() || !addForm.token.trim()) return;
 
-  function handleCloseAdd() {
-    setOpenAdd(false);
-  }
+    let createdTeam = null;
+    try {
+      createdTeam = await createTeam({ name: addForm.teamName.trim() });
+      await createTeamCredential(createdTeam.id, {
+        provider: toProvider(addForm.platform),
+        baseUrl: addForm.repo.trim(),
+        email: addForm.platform === "Jira" ? addForm.email.trim() : null,
+        apiToken: addForm.token.trim(),
+      });
 
-  function handleAddTeam() {
-    const name = teamName.trim();
-    const repoVal = repo.trim();
-    if (!name || !repoVal) return;
-
-    setTeams((prev) => [
-      ...prev,
-      {
-        id: `${name.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
-        name,
-        platform,
-        repo: repoVal,
-        token: token.trim(),
-        status: "Connected"
+      setOpenAdd(false);
+      setAddForm(emptyForm);
+      refreshTeams();
+    } catch (err) {
+      if (createdTeam) {
+        await deleteTeam(createdTeam.id).catch(() => undefined);
       }
-    ]);
-
-    setOpenAdd(false);
-    resetAddForm();
+      setError(err?.message || "Unable to create team credential");
+    }
   }
 
-  function handleDelete(id) {
-    setTeams((prev) => prev.filter((t) => t.id !== id));
+  async function handleDeleteTeam(id) {
+    try {
+      await deleteTeamCredential(id).catch(() => undefined);
+      await deleteTeam(id);
+      refreshTeams();
+    } catch (err) {
+      setError(err?.message || "Unable to delete team");
+    }
   }
 
   function handleOpenEdit(team) {
-    setEditingId(team.id);
-    setEditTeamName(team.name);
-    setEditPlatform(team.platform);
-    setEditRepo(team.repo);
-    setEditToken(team.token || "");
+    setEditTeam(team);
+    setEditForm({
+      teamName: team.name,
+      platform: team.platform,
+      repo: team.repo,
+      token: "",
+      email: team.email || "",
+    });
     setOpenEdit(true);
   }
 
-  function handleCloseEdit() {
-    setOpenEdit(false);
-    setEditingId(null);
+  async function handleUpdateTeam() {
+    if (!editTeam) return;
+    if (!editForm.teamName.trim() || !editForm.repo.trim()) return;
+    if (editTeam.status !== "Connected" && !editForm.token.trim()) {
+      setError("A token is required to configure credentials for this team");
+      return;
+    }
+
+    try {
+      const payload = {
+        provider: toProvider(editForm.platform),
+        baseUrl: editForm.repo.trim(),
+        email: editForm.platform === "Jira" ? editForm.email.trim() : null,
+      };
+      if (editForm.token.trim()) {
+        payload.apiToken = editForm.token.trim();
+      }
+
+      await updateTeam(editTeam.id, { name: editForm.teamName.trim() });
+
+      if (editTeam.status === "Connected") {
+        await updateTeamCredential(editTeam.id, payload);
+      } else {
+        await createTeamCredential(editTeam.id, { ...payload, apiToken: payload.apiToken });
+      }
+
+      setOpenEdit(false);
+      setEditTeam(null);
+      setEditForm(emptyForm);
+      refreshTeams();
+    } catch (err) {
+      setError(err?.message || "Unable to update team");
+    }
   }
 
-  function handleUpdateTeam() {
-    if (!editingId) return;
-
-    const name = editTeamName.trim();
-    const repoVal = editRepo.trim();
-    if (!name || !repoVal) return;
-
-    setTeams((prev) =>
-      prev.map((t) =>
-        t.id === editingId
-          ? { ...t, name, platform: editPlatform, repo: repoVal, token: editToken.trim() }
-          : t
-      )
+  if (isLoading) {
+    return (
+      <Box sx={{ minHeight: 320, display: "grid", placeItems: "center" }}>
+        <CircularProgress size={30} />
+      </Box>
     );
-
-    handleCloseEdit();
   }
 
   return (
     <Box sx={{ minHeight: 520 }}>
-      {/* Header */}
+      {error ? (
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+          {error}
+        </Alert>
+      ) : null}
+
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2 }}>
         <Box>
           <Typography sx={{ fontSize: 34, fontWeight: 900, fontFamily: mono }}>
@@ -211,7 +263,7 @@ export default function TeamCredentials() {
         <Button
           variant="contained"
           startIcon={<AddRoundedIcon />}
-          onClick={handleOpenAdd}
+          onClick={() => setOpenAdd(true)}
           sx={{
             textTransform: "none",
             fontWeight: 900,
@@ -220,17 +272,15 @@ export default function TeamCredentials() {
             py: 1.05,
             bgcolor: ORANGE,
             boxShadow: "none",
-            "&:hover": { bgcolor: "#E07F07", boxShadow: "none" }
+            "&:hover": { bgcolor: "#E07F07", boxShadow: "none" },
           }}
         >
           Add Team
         </Button>
       </Box>
 
-      {/* thin divider under header like screenshot */}
       <Divider sx={{ mt: 2.4, mb: 2.6, borderColor: "rgba(15,23,42,0.06)" }} />
 
-      {/* Search + Filter row (inside a box like screenshot) */}
       <Box
         sx={{
           border: "1px solid rgba(15,23,42,0.06)",
@@ -239,7 +289,7 @@ export default function TeamCredentials() {
           p: 2,
           display: "flex",
           alignItems: "center",
-          gap: 2
+          gap: 2,
         }}
       >
         <TextField
@@ -253,7 +303,7 @@ export default function TeamCredentials() {
               <InputAdornment position="start">
                 <SearchRoundedIcon color="action" />
               </InputAdornment>
-            )
+            ),
           }}
         />
 
@@ -266,54 +316,28 @@ export default function TeamCredentials() {
             borderRadius: 2,
             bgcolor: "#fff",
             "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(15,23,42,0.10)" },
-            "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(15,23,42,0.20)" }
+            "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(15,23,42,0.20)" },
           }}
         >
           <MenuItem value="All Status">All Status</MenuItem>
           <MenuItem value="Connected">Connected</MenuItem>
-          <MenuItem value="Invalid">Invalid</MenuItem>
-          <MenuItem value="Expired">Expired</MenuItem>
+          <MenuItem value="Not Configured">Not Configured</MenuItem>
         </Select>
       </Box>
 
-      {/* Connected Teams summary card */}
-      <Card
-        sx={{
-          mt: 3,
-          borderRadius: 3,
-          border: "1px solid rgba(15,23,42,0.06)",
-          boxShadow: "none"
-        }}
-      >
+      <Card sx={{ mt: 3, borderRadius: 3, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "none" }}>
         <CardContent sx={{ py: 2.4 }}>
-          <Typography sx={{ fontWeight: 900, fontFamily: mono }}>
-            Connected Teams
-          </Typography>
+          <Typography sx={{ fontWeight: 900, fontFamily: mono }}>Connected Teams</Typography>
           <Typography sx={{ mt: 0.9, color: "text.secondary" }}>
             Showing {filteredTeams.length} of {teams.length} teams
           </Typography>
         </CardContent>
       </Card>
 
-      {/* Team list */}
       <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 1.6 }}>
-        {filteredTeams.map((t) => (
-          <Card
-            key={t.id}
-            sx={{
-              borderRadius: 3,
-              border: "1px solid rgba(15,23,42,0.06)",
-              boxShadow: "none"
-            }}
-          >
-            <CardContent
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                py: 2.2
-              }}
-            >
+        {filteredTeams.map((team) => (
+          <Card key={team.id} sx={{ borderRadius: 3, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "none" }}>
+            <CardContent sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", py: 2.2 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Avatar
                   sx={{
@@ -323,48 +347,35 @@ export default function TeamCredentials() {
                     bgcolor: "rgba(247,144,9,0.12)",
                     color: ORANGE,
                     fontWeight: 900,
-                    fontFamily: mono
+                    fontFamily: mono,
                   }}
                 >
-                  {initials(t.name)}
+                  {initials(team.name)}
                 </Avatar>
 
                 <Box>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography sx={{ fontWeight: 900, fontFamily: mono }}>
-                      {t.name}
-                    </Typography>
-
+                    <Typography sx={{ fontWeight: 900, fontFamily: mono }}>{team.name}</Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.7 }}>
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 99,
-                          bgcolor: platformDotColor(t.platform)
-                        }}
-                      />
-                      <Typography sx={{ fontWeight: 800, fontSize: 13 }}>
-                        {t.platform}
-                      </Typography>
+                      <Box sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: platformDotColor(team.platform) }} />
+                      <Typography sx={{ fontWeight: 800, fontSize: 13 }}>{team.platform}</Typography>
                     </Box>
                   </Box>
 
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.8, mt: 0.55 }}>
                     <LinkRoundedIcon sx={{ fontSize: 16, color: "text.secondary" }} />
                     <Typography sx={{ color: "text.secondary", fontFamily: mono, fontSize: 13 }}>
-                      {t.repo}
+                      {team.repo || "Credential not configured"}
                     </Typography>
                   </Box>
                 </Box>
               </Box>
 
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <IconButton size="small" onClick={() => handleOpenEdit(t)}>
+                <IconButton size="small" onClick={() => handleOpenEdit(team)}>
                   <EditOutlinedIcon />
                 </IconButton>
-
-                <IconButton size="small" onClick={() => handleDelete(t.id)}>
+                <IconButton size="small" onClick={() => handleDeleteTeam(team.id)}>
                   <DeleteOutlineOutlinedIcon sx={{ color: "#F04438" }} />
                 </IconButton>
               </Box>
@@ -373,14 +384,13 @@ export default function TeamCredentials() {
         ))}
       </Box>
 
-      {/* Secure info box */}
       <Card
         sx={{
           mt: 3,
           borderRadius: 3,
           bgcolor: "rgba(18,183,106,0.10)",
           border: "1px solid rgba(18,183,106,0.20)",
-          boxShadow: "none"
+          boxShadow: "none",
         }}
       >
         <CardContent sx={{ py: 2.2 }}>
@@ -391,190 +401,154 @@ export default function TeamCredentials() {
             </Typography>
           </Stack>
           <Typography sx={{ mt: 0.9, color: "rgba(15,23,42,0.70)", fontFamily: mono, fontSize: 13 }}>
-            All API keys and tokens are encrypted and stored persistently. They will be available across sessions and can
-            be updated or removed at any time.
+            Credential tokens are encrypted at rest on the server. Only a token-presence flag is returned to the UI.
           </Typography>
         </CardContent>
       </Card>
 
-      {/* ADD modal */}
-      <Dialog open={openAdd} onClose={handleCloseAdd} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: 3 } }}>
-        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontWeight: 900, fontFamily: mono }}>
-          Add New Team
-          <IconButton onClick={handleCloseAdd} size="small">
-            <CloseRoundedIcon />
-          </IconButton>
-        </DialogTitle>
+      <CredentialDialog
+        open={openAdd}
+        title="Add New Team"
+        form={addForm}
+        setForm={setAddForm}
+        onClose={() => setOpenAdd(false)}
+        onSubmit={handleAddTeam}
+        submitLabel="Add Team"
+        requireToken
+      />
 
-        <DialogContent sx={{ pt: 1.5 }}>
-          <Stack spacing={2.2}>
-            <Box>
-              <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>Team Name</Typography>
-              <TextField
-                fullWidth
-                placeholder="e.g., Team Alpha"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                sx={inputSx}
-              />
-            </Box>
-
-            <Box>
-              <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>Platform</Typography>
-              <RadioGroup row value={platform} onChange={(e) => setPlatform(e.target.value)} sx={{ gap: 2 }}>
-                <FormControlLabel value="GitHub" control={<Radio />} label="GitHub" />
-                <FormControlLabel value="Jira" control={<Radio />} label="Jira" />
-              </RadioGroup>
-            </Box>
-
-            <Box>
-              <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>
-                {platform === "GitHub" ? "GitHub Repository" : "Jira Site / Board"}
-              </Typography>
-              <TextField
-                fullWidth
-                placeholder={platform === "GitHub" ? "owner/repo" : "your-team.atlassian.net"}
-                value={repo}
-                onChange={(e) => setRepo(e.target.value)}
-                sx={inputSx}
-              />
-            </Box>
-
-            <Box>
-              <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>
-                {platform === "GitHub" ? "GitHub Personal Access Token" : "Jira API Token"}
-              </Typography>
-              <TextField
-                fullWidth
-                placeholder={platform === "GitHub" ? "ghp_xxxxxxxxxxxx" : "xxxxxxxxxxxx"}
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                sx={inputSx}
-                type="password"
-              />
-            </Box>
-          </Stack>
-        </DialogContent>
-
-        <DialogActions sx={{ p: 2.2, pt: 1.6, gap: 1.2 }}>
-          <Button
-            onClick={handleCloseAdd}
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              fontWeight: 900,
-              borderRadius: 2,
-              px: 2.2,
-              py: 1.0,
-              borderColor: "rgba(15,23,42,0.18)",
-              color: "text.primary",
-              "&:hover": { borderColor: "rgba(15,23,42,0.35)" }
-            }}
-            fullWidth
-          >
-            Cancel
-          </Button>
-
-          <Button
-            onClick={handleAddTeam}
-            variant="contained"
-            disabled={!teamName.trim() || !repo.trim()}
-            sx={{
-              textTransform: "none",
-              fontWeight: 900,
-              borderRadius: 2,
-              px: 2.2,
-              py: 1.0,
-              bgcolor: ORANGE,
-              boxShadow: "none",
-              "&:hover": { bgcolor: "#E07F07", boxShadow: "none" }
-            }}
-            fullWidth
-          >
-            Add Team
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* EDIT modal */}
-      <Dialog open={openEdit} onClose={handleCloseEdit} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: 3 } }}>
-        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontWeight: 900, fontFamily: mono }}>
-          Edit Team
-          <IconButton onClick={handleCloseEdit} size="small">
-            <CloseRoundedIcon />
-          </IconButton>
-        </DialogTitle>
-
-        <DialogContent sx={{ pt: 1.5 }}>
-          <Stack spacing={2.2}>
-            <Box>
-              <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>Team Name</Typography>
-              <TextField fullWidth value={editTeamName} onChange={(e) => setEditTeamName(e.target.value)} sx={inputSx} />
-            </Box>
-
-            <Box>
-              <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>Platform</Typography>
-              <RadioGroup row value={editPlatform} onChange={(e) => setEditPlatform(e.target.value)} sx={{ gap: 2 }}>
-                <FormControlLabel value="GitHub" control={<Radio />} label="GitHub" />
-                <FormControlLabel value="Jira" control={<Radio />} label="Jira" />
-              </RadioGroup>
-            </Box>
-
-            <Box>
-              <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>
-                {editPlatform === "GitHub" ? "GitHub Repository" : "Jira Site / Board"}
-              </Typography>
-              <TextField fullWidth value={editRepo} onChange={(e) => setEditRepo(e.target.value)} sx={inputSx} />
-            </Box>
-
-            <Box>
-              <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>
-                {editPlatform === "GitHub" ? "GitHub Personal Access Token" : "Jira API Token"}
-              </Typography>
-              <TextField fullWidth type="password" value={editToken} onChange={(e) => setEditToken(e.target.value)} sx={inputSx} />
-            </Box>
-          </Stack>
-        </DialogContent>
-
-        <DialogActions sx={{ p: 2.2, pt: 1.6, gap: 1.2 }}>
-          <Button
-            onClick={handleCloseEdit}
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              fontWeight: 900,
-              borderRadius: 2,
-              px: 2.2,
-              py: 1.0,
-              borderColor: "rgba(15,23,42,0.18)",
-              color: "text.primary",
-              "&:hover": { borderColor: "rgba(15,23,42,0.35)" }
-            }}
-            fullWidth
-          >
-            Cancel
-          </Button>
-
-          <Button
-            onClick={handleUpdateTeam}
-            variant="contained"
-            disabled={!editTeamName.trim() || !editRepo.trim()}
-            sx={{
-              textTransform: "none",
-              fontWeight: 900,
-              borderRadius: 2,
-              px: 2.2,
-              py: 1.0,
-              bgcolor: ORANGE,
-              boxShadow: "none",
-              "&:hover": { bgcolor: "#E07F07", boxShadow: "none" }
-            }}
-            fullWidth
-          >
-            Update
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <CredentialDialog
+        open={openEdit}
+        title="Edit Team"
+        form={editForm}
+        setForm={setEditForm}
+        onClose={() => {
+          setOpenEdit(false);
+          setEditTeam(null);
+        }}
+        onSubmit={handleUpdateTeam}
+        submitLabel="Update"
+        requireToken={editTeam?.status !== "Connected"}
+      />
     </Box>
+  );
+}
+
+function CredentialDialog({ open, title, form, setForm, onClose, onSubmit, submitLabel, requireToken = false }) {
+  const isJira = form.platform === "Jira";
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: 3 } }}>
+      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontWeight: 900, fontFamily: mono }}>
+        {title}
+        <IconButton onClick={onClose} size="small">
+          <CloseRoundedIcon />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent sx={{ pt: 1.5 }}>
+        <Stack spacing={2.2}>
+          <Box>
+            <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>Team Name</Typography>
+            <TextField
+              fullWidth
+              value={form.teamName}
+              onChange={(e) => setForm((prev) => ({ ...prev, teamName: e.target.value }))}
+              sx={inputSx}
+            />
+          </Box>
+
+          <Box>
+            <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>Platform</Typography>
+            <RadioGroup
+              row
+              value={form.platform}
+              onChange={(e) => setForm((prev) => ({ ...prev, platform: e.target.value }))}
+              sx={{ gap: 2 }}
+            >
+              <FormControlLabel value="GitHub" control={<Radio />} label="GitHub" />
+              <FormControlLabel value="Jira" control={<Radio />} label="Jira" />
+            </RadioGroup>
+          </Box>
+
+          <Box>
+            <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>
+              {isJira ? "Jira Base URL" : "GitHub Repository URL"}
+            </Typography>
+            <TextField
+              fullWidth
+              placeholder={isJira ? "https://company.atlassian.net/projects/TEAM" : "https://github.com/owner/repo"}
+              value={form.repo}
+              onChange={(e) => setForm((prev) => ({ ...prev, repo: e.target.value }))}
+              sx={inputSx}
+            />
+          </Box>
+
+          {isJira ? (
+            <Box>
+              <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>Jira Account Email</Typography>
+              <TextField
+                fullWidth
+                value={form.email}
+                onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+                sx={inputSx}
+              />
+            </Box>
+          ) : null}
+
+          <Box>
+            <Typography sx={{ fontWeight: 800, mb: 0.8, fontFamily: mono }}>
+              {isJira ? "Jira API Token" : "GitHub Personal Access Token"}
+            </Typography>
+            <TextField
+              fullWidth
+              type="password"
+              value={form.token}
+              onChange={(e) => setForm((prev) => ({ ...prev, token: e.target.value }))}
+              sx={inputSx}
+            />
+          </Box>
+        </Stack>
+      </DialogContent>
+
+      <DialogActions sx={{ p: 2.2, pt: 1.6, gap: 1.2 }}>
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          sx={{
+            textTransform: "none",
+            fontWeight: 900,
+            borderRadius: 2,
+            px: 2.2,
+            py: 1.0,
+            borderColor: "rgba(15,23,42,0.18)",
+            color: "text.primary",
+            "&:hover": { borderColor: "rgba(15,23,42,0.35)" },
+          }}
+          fullWidth
+        >
+          Cancel
+        </Button>
+
+        <Button
+          onClick={onSubmit}
+          variant="contained"
+          disabled={!form.teamName.trim() || !form.repo.trim() || (requireToken && !form.token.trim())}
+          sx={{
+            textTransform: "none",
+            fontWeight: 900,
+            borderRadius: 2,
+            px: 2.2,
+            py: 1.0,
+            bgcolor: ORANGE,
+            boxShadow: "none",
+            "&:hover": { bgcolor: "#E07F07", boxShadow: "none" },
+          }}
+          fullWidth
+        >
+          {submitLabel}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

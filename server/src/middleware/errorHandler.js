@@ -8,8 +8,14 @@
  */
 const errorHandler = (err, req, res, _next) => {
     console.error(err.stack);
+    const status = err.status || 500;
+    const isProduction = process.env.NODE_ENV === 'production';
+    const message = status >= 500 && isProduction
+        ? 'Internal Server Error'
+        : (err.message || 'Internal Server Error');
+
     res.status(err.status || 500).json({
-        error: err.message || 'Internal Server Error',
+        error: message,
     });
 };
 
