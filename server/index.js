@@ -4,6 +4,18 @@ import { sequelize } from './src/models/index.js';
 
 const port = process.env.PORT || 3001;
 
+const validateSecurityEnv = () => {
+    if (process.env.NODE_ENV === 'test') {
+        return;
+    }
+
+    const required = ['JWT_SECRET', 'ENCRYPTION_KEY', 'ADMIN_API_KEY'];
+    const missing = required.filter((key) => !process.env[key]);
+    if (missing.length > 0) {
+        throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    }
+};
+
 const connectWithRetry = async (retries = 5, delay = 3000) => {
     for (let i = 0; i < retries; i++) {
         try {
@@ -24,6 +36,7 @@ const connectWithRetry = async (retries = 5, delay = 3000) => {
 
 const start = async () => {
     try {
+        validateSecurityEnv();
         await connectWithRetry();
         console.log('Database connection established.');
 
