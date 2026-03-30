@@ -18,6 +18,8 @@ const corsAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
 
 const corsOptions = {
     origin(origin, callback) {
+        // Allow requests with no Origin header (server-to-server, Postman, cURL).
+        // These are still authenticated via x-api-key or JWT, not restricted by CORS.
         if (!origin || corsAllowedOrigins.includes(origin)) {
             return callback(null, true);
         }

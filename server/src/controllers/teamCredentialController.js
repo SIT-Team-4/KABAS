@@ -66,6 +66,14 @@ export async function listByTeams(req, res, next) {
             return res.json({ success: true, data: [] });
         }
 
+        const MAX_TEAM_IDS = 50;
+        if (teamIds.length > MAX_TEAM_IDS) {
+            return res.status(400).json({
+                success: false,
+                error: `Too many team IDs. Maximum is ${MAX_TEAM_IDS}.`,
+            });
+        }
+
         const credentials = await teamCredentialService.getCredentialsForTeams(teamIds);
         return res.json({ success: true, data: credentials });
     } catch (err) {
