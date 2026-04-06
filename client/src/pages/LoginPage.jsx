@@ -8,7 +8,6 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
-  Divider,
   Alert,
 } from "@mui/material";
 
@@ -17,7 +16,6 @@ import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import AccountTreeRoundedIcon from "@mui/icons-material/AccountTreeRounded";
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomizeRounded";
-import GitHubIcon from "@mui/icons-material/GitHub";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
