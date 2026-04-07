@@ -232,7 +232,24 @@ export default function TaskDetailsModal({ open, onClose, task }) {
           <InfoRow
             icon={<TagRoundedIcon fontSize="small" />}
             label="Task ID"
-            value={task.id || "-"}
+            value={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <span>{task.id || "-"}</span>
+                {task.source && (
+                  <Chip
+                    size="small"
+                    label={task.source === "jira" ? "Jira" : "GitHub"}
+                    sx={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      height: 20,
+                      bgcolor: task.source === "jira" ? "rgba(0,82,204,0.1)" : "rgba(16,24,40,0.08)",
+                      color: task.source === "jira" ? "#0052CC" : "#24292f",
+                    }}
+                  />
+                )}
+              </Box>
+            }
           />
         </Box>
 

@@ -16,6 +16,7 @@ import {
   Chip,
   CircularProgress,
   Alert,
+  Tooltip,
 } from "@mui/material";
 
 import SyncRoundedIcon from "@mui/icons-material/SyncRounded";
@@ -169,6 +170,27 @@ function DonutChart({ segments, totalCount = 0, size = 140, thickness = 18 }) {
               />
             );
           })}
+
+        {/* Inline percentage labels on segments */}
+        {(() => {
+          let labelOffset = 0;
+          return segments
+            .filter((s) => s.value > 0)
+            .map((s) => {
+              const len = (s.value / 100) * c;
+              const midArc = labelOffset + len / 2;
+              labelOffset += len;
+              if (s.value < 8) return null;
+              const angle = (midArc / c) * 2 * Math.PI - Math.PI / 2;
+              const lx = size / 2 + r * Math.cos(angle);
+              const ly = size / 2 + r * Math.sin(angle);
+              return (
+                <text key={`lbl-${s.key}`} x={lx} y={ly} textAnchor="middle" dominantBaseline="central" fill="#fff" fontSize={10} fontWeight={800} style={{ pointerEvents: "none" }}>
+                  {Math.round(s.value)}%
+                </text>
+              );
+            });
+        })()}
       </svg>
     </Box>
   );
@@ -903,9 +925,9 @@ export default function TeamDashboard() {
                 <TableCell align="center" sx={{ color: "text.secondary", fontWeight: 700 }}>Tasks Assigned</TableCell>
                 <TableCell align="center" sx={{ color: "text.secondary", fontWeight: 700 }}>Completed</TableCell>
                 <TableCell align="center" sx={{ color: "text.secondary", fontWeight: 700 }}>In Progress</TableCell>
-                <TableCell align="center" sx={{ color: "text.secondary", fontWeight: 700 }}>Avg. Completion (days)</TableCell>
-                <TableCell align="center" sx={{ color: "text.secondary", fontWeight: 700 }}>Std. Deviation</TableCell>
-                <TableCell align="center" sx={{ color: "text.secondary", fontWeight: 700 }}>Efficiency</TableCell>
+                <Tooltip title="Average number of days from task creation to completion" arrow><TableCell align="center" sx={{ color: "text.secondary", fontWeight: 700, cursor: "help" }}>Avg. Completion (days)</TableCell></Tooltip>
+                <Tooltip title="Standard deviation of completion times — lower means more consistent" arrow><TableCell align="center" sx={{ color: "text.secondary", fontWeight: 700, cursor: "help" }}>Std. Deviation</TableCell></Tooltip>
+                <Tooltip title="Ratio of average task completion time to total project duration" arrow><TableCell align="center" sx={{ color: "text.secondary", fontWeight: 700, cursor: "help" }}>Efficiency</TableCell></Tooltip>
               </TableRow>
             </TableHead>
 

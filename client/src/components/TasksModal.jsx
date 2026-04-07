@@ -318,10 +318,32 @@ export default function TasksModal({
                   </Box>
                 </Box>
 
+                {/* Task ID + source */}
+                {task.id && (
+                  <Box sx={{ mt: 1, display: "flex", alignItems: "center", gap: 0.75 }}>
+                    <Typography sx={{ fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: "rgba(16,24,40,0.45)", fontWeight: 700 }}>
+                      {task.id}
+                    </Typography>
+                    {task.source && (
+                      <Chip
+                        size="small"
+                        label={task.source === "jira" ? "Jira" : "GitHub"}
+                        sx={{
+                          fontSize: 9,
+                          fontWeight: 800,
+                          height: 18,
+                          bgcolor: task.source === "jira" ? "rgba(0,82,204,0.1)" : "rgba(16,24,40,0.08)",
+                          color: task.source === "jira" ? "#0052CC" : "#24292f",
+                        }}
+                      />
+                    )}
+                  </Box>
+                )}
+
                 {/* Bottom row: owner left, days right */}
                 <Box
                   sx={{
-                    mt: 1.75,
+                    mt: 1,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
