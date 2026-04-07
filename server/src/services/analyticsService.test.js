@@ -365,7 +365,7 @@ describe('getTeamAnalytics', () => {
         const result = await getTeamAnalytics(1);
 
         expect(createJiraClient).toHaveBeenCalledWith({
-            baseUrl: mockCredentialJira.baseUrl,
+            baseUrl: new URL(mockCredentialJira.baseUrl).origin,
             email: mockCredentialJira.email,
             apiToken: mockCredentialJira.apiToken,
         });

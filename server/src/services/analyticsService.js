@@ -361,8 +361,9 @@ async function getTeamAnalytics(teamId) {
                 parseErr.status = 400;
                 throw parseErr;
             }
+            const jiraOrigin = new URL(credential.baseUrl).origin;
             const jiraClient = createJiraClient({
-                baseUrl: credential.baseUrl,
+                baseUrl: jiraOrigin,
                 email: credential.email,
                 apiToken: credential.apiToken,
             });
