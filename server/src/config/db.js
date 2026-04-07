@@ -5,7 +5,7 @@
 import { Sequelize } from 'sequelize';
 
 const dialectOptions = process.env.DB_SSL === 'true'
-    ? { ssl: { rejectUnauthorized: true } }
+    ? { ssl: { rejectUnauthorized: false } }
     : {};
 
 const sequelize = new Sequelize(
