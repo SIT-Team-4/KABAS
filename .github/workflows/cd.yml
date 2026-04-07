@@ -13,13 +13,15 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   deploy:
-    name: Deploy to Render
+    name: Deploy to DigitalOcean
     needs: ci
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - name: Trigger Server Deploy
-        continue-on-error: true
-        run: curl -sfS --max-time 30 "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
-
-      - name: Trigger Client Deploy
-        run: curl -sfS --max-time 30 "${{ secrets.RENDER_CLIENT_DEPLOY_HOOK_URL }}"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Deploy the app
+        uses: digitalocean/app_action/deploy@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
