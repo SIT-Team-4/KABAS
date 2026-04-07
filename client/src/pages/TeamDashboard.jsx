@@ -479,6 +479,7 @@ export default function TeamDashboard() {
     const byMember = [];
 
     for (const m of members) {
+      if (m === "Unassigned") continue;
       const mine = tasks.filter((t) => taskOwner(t) === m);
 
       const opened = mine
