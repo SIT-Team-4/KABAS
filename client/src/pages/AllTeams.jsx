@@ -246,7 +246,7 @@ export default function AllTeams() {
               icon={<AssignmentOutlinedIcon sx={{ fontSize: 16 }} />}
               label="Total Tasks"
               value={String(data.cohort?.totalTasks ?? 0)}
-              helper={`${completionRate}% completion rate`}
+              helper={`${data.cohort?.totalCompleted ?? 0} of ${data.cohort?.totalTasks ?? 0} completed (${completionRate}%)`}
             />
           </Grid>
           <Grid item xs={12} md={6} xl={3}>
