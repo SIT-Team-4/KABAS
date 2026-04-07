@@ -142,6 +142,7 @@ describe('normalizeJiraIssue', () => {
             assignee: 'Maya Patel',
             created: '2026-01-10',
             updated: '2026-01-15',
+            inActiveSprint: true,
         };
         const result = normalizeJiraIssue(issue, 1);
 
@@ -155,6 +156,20 @@ describe('normalizeJiraIssue', () => {
         expect(result.rawStatus).toBe('In Progress');
         expect(result.source).toBe('jira');
         expect(result.completedAt).toBeNull();
+    });
+
+    it('should map to backlog when not in active sprint', () => {
+        const issue = {
+            id: 'KBAS-44',
+            title: 'Backlog task',
+            status: 'To Do',
+            assignee: 'Maya Patel',
+            created: '2026-01-10',
+            updated: '2026-01-15',
+            inActiveSprint: false,
+        };
+        const result = normalizeJiraIssue(issue, 1);
+        expect(result.bucket).toBe('backlog');
     });
 
     it('should set completedAt for completed issues', () => {
