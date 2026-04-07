@@ -1,6 +1,8 @@
 # KABAS
 Kanban Board Assessment System (KABAS)
 
+**Production:** https://kabas-app-bdtry.ondigitalocean.app
+
 ## Prerequisites
 
 ### Node.js (v20+)
@@ -80,22 +82,22 @@ Runs automatically on **pull requests to main** as two parallel jobs:
 
 Runs automatically on **push to main** (i.e. when a PR is merged):
 1. Both CI jobs run in parallel
-2. If both pass, triggers deploys to [Render](https://render.com)
+2. If both pass, deploys to DigitalOcean App Platform via `digitalocean/app_action/deploy@v2`
 
 ### Deployment Architecture
 
 ```text
-GitHub (push to main) → GitHub Actions (CI + deploy trigger) → Render (build + run) → Aiven (MySQL)
+GitHub (push to main) → GitHub Actions (CI + deploy) → DigitalOcean App Platform → Managed MySQL
 ```
 
-- **Compute:** Render Web Service (Node.js backend)
-- **Static Site:** Render Static Site (React client)
-- **Database:** Aiven MySQL (free tier)
-- **Deploy trigger:** Render deploy hooks (stored as GitHub repo secrets `RENDER_DEPLOY_HOOK_URL` and `RENDER_CLIENT_DEPLOY_HOOK_URL`)
+- **Compute:** DigitalOcean App Platform Web Service (Node.js backend)
+- **Static Site:** DigitalOcean App Platform Static Site (React client)
+- **Database:** DigitalOcean Managed MySQL (Basic, SGP1)
+- **Deploy trigger:** `digitalocean/app_action/deploy@v2` GitHub Action (requires `DIGITALOCEAN_ACCESS_TOKEN` repo secret)
 
 ### Rollback
 
-- **Render dashboard:** Navigate to the service → Deploys → click a previous successful deploy → Rollback
+- **DigitalOcean dashboard:** Navigate to App → Activity → click a previous successful deploy → Rollback
 - **Git:** Revert the commit on `main` → triggers a new deploy with the previous code
 
 ## Project Structure
