@@ -22,8 +22,8 @@ export const getIssues = async (projectKey, options = {}) => {
     try {
         const jiraClient = options.client || jiraConfigGateway.getJiraClient();
 
-        const jql = `project = "${safeKey}" AND type in (Task, Story, Bug)`;
-        const fields = ['key', 'summary', 'status', 'assignee', 'created', 'updated'];
+        const jql = `project = "${safeKey}" ORDER BY created DESC`;
+        const fields = ['key', 'summary', 'status', 'assignee', 'created', 'updated', 'sprint', 'customfield_10020'];
 
         let allIssues = [];
         let nextPageToken;

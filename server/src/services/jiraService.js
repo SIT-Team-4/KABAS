@@ -24,6 +24,12 @@ export const fetchProjectIssues = async (projectKey, options = {}) => {
 
         return issues.map((issue) => {
             const fields = issue?.fields || {};
+            // Sprint data: try 'sprint' field first, fall back to customfield_10020 (Jira Cloud)
+            const sprint = fields?.sprint || fields?.customfield_10020 || null;
+            // sprint can be an object or array of sprint objects
+            const sprintObj = Array.isArray(sprint) ? sprint[sprint.length - 1] : sprint;
+            const inActiveSprint = sprintObj ? sprintObj.state === 'active' : false;
+
             return {
                 id: issue?.key || 'unknown',
                 title: fields?.summary || 'Untitled',
@@ -32,6 +38,8 @@ export const fetchProjectIssues = async (projectKey, options = {}) => {
                 created: fields?.created || null,
                 updated: fields?.updated || null,
                 url: JIRA_BASE_URL ? `${JIRA_BASE_URL}/browse/${issue?.key || ''}` : null,
+                inActiveSprint,
+                sprintName: sprint?.name || null,
             };
         });
     } catch (error) {

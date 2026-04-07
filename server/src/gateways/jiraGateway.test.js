@@ -33,7 +33,7 @@ describe('Jira Gateway', () => {
       expect(mockClient.post).toHaveBeenCalledWith(
         '/rest/api/3/search/jql',
         expect.objectContaining({
-          jql: 'project = "PROJ" AND type in (Task, Story, Bug)',
+          jql: 'project = "PROJ" ORDER BY created DESC',
         })
       );
     });

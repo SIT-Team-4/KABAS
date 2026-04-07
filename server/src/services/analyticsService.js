@@ -116,7 +116,11 @@ function findStartedAt(timelineEvents) {
  * @returns {Object} Task-ready object.
  */
 function normalizeJiraIssue(issue, teamId) {
-    const bucket = mapStatusToBucket(issue.status);
+    let bucket = mapStatusToBucket(issue.status);
+    // Tasks not in the active sprint are backlog (unless already completed)
+    if (!issue.inActiveSprint && bucket !== 'completed') {
+        bucket = 'backlog';
+    }
     return {
         teamId,
         externalId: issue.id,
