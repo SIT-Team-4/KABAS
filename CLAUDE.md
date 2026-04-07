@@ -38,7 +38,7 @@ docker-compose up -d   # Start MySQL (port 3307→3306)
 docker-compose down    # Stop MySQL
 ```
 
-Environment: copy `.env.example` to `.env` at repo root. Required vars: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `ENCRYPTION_KEY` (64-char hex), `ADMIN_API_KEY`.
+Environment: copy `.env.example` to `.env` at repo root. Required vars: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `DB_SSL` (true for managed MySQL), `ENCRYPTION_KEY` (64-char hex), `ADMIN_API_KEY`.
 
 ## Architecture
 
@@ -83,8 +83,8 @@ ClassGroup (1) → (Many) Team (1) → (One) TeamCredential
 ## CI/CD
 
 - **CI** runs on PRs to `main`: lint + test (server), lint + test + build (client) — parallel jobs
-- **CD** runs on push to `main`: CI then Render deploy hooks for both services
-- Deployment: Render (backend web service + frontend static site) + Aiven MySQL
+- **CD** runs on push to `main`: CI then deploys via `digitalocean/app_action/deploy@v2`
+- Deployment: DigitalOcean App Platform (backend web service + frontend static site) + DigitalOcean Managed MySQL
 
 ## Conventions
 
