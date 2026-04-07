@@ -3,6 +3,10 @@ Kanban Board Assessment System (KABAS)
 
 **Production:** https://kabas-app-bdtry.ondigitalocean.app
 
+**Test Account:**
+- Email: `test@kabas.dev`
+- Password: `testpassword123`
+
 ## Prerequisites
 
 ### Node.js (v20+)
