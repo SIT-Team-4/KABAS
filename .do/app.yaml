@@ -96,3 +96,4 @@ static_sites:
   name: kabas-client
   output_dir: build
   source_dir: client
+  catchall_document: index.html
