@@ -33,6 +33,47 @@ region: sgp
 services:
 - build_command: npm install
   environment_slug: node-js
+  envs:
+  - key: DB_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: kabas-db-do-user-35605851-0.g.db.ondigitalocean.com
+  - key: DB_PORT
+    scope: RUN_AND_BUILD_TIME
+    value: "25060"
+  - key: DB_NAME
+    scope: RUN_AND_BUILD_TIME
+    value: kabas
+  - key: DB_USER
+    scope: RUN_AND_BUILD_TIME
+    value: doadmin
+  - key: DB_PASSWORD
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:RU3Y4TY67UcguZRaRBbga97JwlihauIw:J1T8dRCUef/TJpbAWnOg+azR/4twVWDmZoYmcqcd8EoikSubj7RrCQ==]
+  - key: DB_SSL
+    scope: RUN_AND_BUILD_TIME
+    value: "true"
+  - key: JWT_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:K2kuyL2hSsVdhnQnnALk4x+UHImqiqjj:U5XlHNn8yAbsq1Z821mKvYZ9vR/RIxT10ks+ZkseoDcttQA7G5qL8KycBSRTd20+jGOmT5Yj4b4nMOv8lWM9+XXpeRt3n3LcXP/rpNleWBQ=]
+  - key: ENCRYPTION_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:sWgRuqRfLT9ewDbgXhWsl7nwX9//ihm6:4eXVCw1SYtLtZ+3DPLxGBOkOvuYKZlDWmYrTG6T2pNc2YoLWtBN2VgGUt4JicP+4U0i3sk5ADIwyTQajMJiUs2v5WOIX/pSXPm74Xuw7i7w=]
+  - key: ADMIN_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:bGt91QU4n1M4So3v5FxjDBqRdhc4vz9k:Rn4DKBzvftkSF+AvweHJu1H0Sn0wP7yWN6Lxkm2PlapEOoFR54AxsqgC0oIFV51fKU7wm3It34cBe7KDxFEh8aIyyMXr8wxJZkddjUNTzj0=]
+  - key: NODE_ENV
+    scope: RUN_AND_BUILD_TIME
+    value: production
+  - key: DATABASE_URL
+    scope: RUN_TIME
+    value: ${dev-db-189940.DATABASE_URL}
+  - key: CORS_ALLOWED_ORIGINS
+    scope: RUN_TIME
+    value: https://kabas-app-bdtry.ondigitalocean.app
   github:
     branch: main
     repo: SIT-Team-4/KABAS
@@ -45,6 +86,10 @@ services:
 static_sites:
 - build_command: npm install && npm run build
   environment_slug: node-js
+  envs:
+  - key: REACT_APP_API_BASE_URL
+    scope: BUILD_TIME
+    value: https://kabas-app-bdtry.ondigitalocean.app/api
   github:
     branch: main
     repo: SIT-Team-4/KABAS
