@@ -14,7 +14,15 @@ export async function getTeamAnalytics(teamId) {
   return response.data;
 }
 
-export async function getAllTeamsAnalytics() {
-  const response = await apiClient.request("/analytics/teams");
+export async function getAllTeamsAnalytics(params = {}) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value != null && value !== "") {
+      search.set(key, value);
+    }
+  });
+
+  const qs = search.toString();
+  const response = await apiClient.request(`/analytics/teams${qs ? `?${qs}` : ""}`);
   return response.data;
 }

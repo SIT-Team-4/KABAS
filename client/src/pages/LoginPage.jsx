@@ -339,7 +339,7 @@ export default function LoginPage() {
                   {isSubmitting ? "Signing in..." : "Sign in"}
                 </Button>
               </Box>
-              
+
               <Typography
                 sx={{
                   mt: 3,
