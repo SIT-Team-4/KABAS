@@ -1,0 +1,53 @@
+alerts:
+- rule: DEPLOYMENT_FAILED
+- rule: DOMAIN_FAILED
+databases:
+- cluster_name: kabas-db
+  db_name: kabas
+  db_user: doadmin
+  engine: MYSQL
+  name: kabas-db
+  production: true
+features:
+- buildpack-stack=ubuntu-22
+ingress:
+  rules:
+  - component:
+      name: kabas-server
+      preserve_path_prefix: true
+    match:
+      authority:
+        exact: ""
+      path:
+        prefix: /api
+  - component:
+      name: kabas-client
+      preserve_path_prefix: true
+    match:
+      authority:
+        exact: ""
+      path:
+        prefix: /
+name: kabas-app
+region: sgp
+services:
+- build_command: npm install
+  environment_slug: node-js
+  github:
+    branch: main
+    repo: SIT-Team-4/KABAS
+  http_port: 3001
+  instance_count: 1
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  name: kabas-server
+  run_command: npm start
+  source_dir: server
+static_sites:
+- build_command: npm install && npm run build
+  environment_slug: node-js
+  github:
+    branch: main
+    repo: SIT-Team-4/KABAS
+  name: kabas-client
+  output_dir: build
+  source_dir: client
