@@ -402,7 +402,7 @@ export default function TeamDashboard() {
     const pickMax = (bucketKey) => {
       if (!bucketKey) return { name: "—", count: 0 };
       let best = { name: "—", count: 0 };
-      for (const [name, v] of Object.entries(byMember)) {
+      for (const [name, v] of Object.entries(byMember).filter(([n]) => n !== "Unassigned")) {
         const c = v.byBucket?.[bucketKey] ?? 0;
         if (c > best.count) best = { name, count: c };
       }
@@ -421,6 +421,7 @@ export default function TeamDashboard() {
     const completedKey = keyCompleted || "completed";
 
     for (const m of members) {
+      if (m === "Unassigned") continue;
       const mine = tasks.filter((t) => taskOwner(t) === m);
       const assigned = mine.length;
 
